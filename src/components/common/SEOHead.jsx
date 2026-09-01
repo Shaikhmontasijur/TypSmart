@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 
 export function SEOHead({
-  title = 'TypeFlow — Master Your Keyboard',
+  title = 'TypSmart — Master Your Keyboard',
   description = 'Master touch typing with focused practice, speed tests, and daily progress tracking.'
 }) {
   useEffect(() => {
-    document.title = title.includes('TypeFlow') ? title : `${title} — TypeFlow`
+    document.title = title.includes('TypSmart') ? title : `${title} — TypSmart`
 
     const metaDescription = document.querySelector('meta[name="description"]')
     if (metaDescription) {

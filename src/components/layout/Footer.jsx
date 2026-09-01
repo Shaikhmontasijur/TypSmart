@@ -14,7 +14,7 @@ export function Footer() {
                 <Zap className="w-4 h-4 fill-current" />
               </div>
               <span className="text-slate-900 dark:text-white font-extrabold">
-                TYPEFLOW
+                TypSmart
               </span>
             </Link>
             <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm">
@@ -83,7 +83,7 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link to="/about" className="hover:text-brand-500 transition">
-                  About TypeFlow
+                  About TypSmart
                 </Link>
               </li>
               <li>
@@ -106,7 +106,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} TypeFlow. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} TypSmart. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Cloudflare Pages Ready

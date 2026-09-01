@@ -12,13 +12,15 @@ import { Modal } from '../components/common/Modal'
 import { SEOHead } from '../components/common/SEOHead'
 import { Card } from '../components/common/Card'
 import { Button } from '../components/common/Button'
+import { useSettings } from '../contexts/SettingsContext'
 import { Keyboard, HelpCircle, ShieldCheck, Sparkles, Award, FileText, Eye, EyeOff } from 'lucide-react'
 
 export function TypingTest() {
-  const [duration, setDuration] = useState(60)
-  const [difficulty, setDifficulty] = useState('easy')
-  const [soundEnabled, setSoundEnabled] = useState(true)
-  const [showKeyboard, setShowKeyboard] = useState(false)
+  const { settings, updateSettings } = useSettings()
+  const [duration, setDuration] = useState(settings.duration)
+  const [difficulty, setDifficulty] = useState(settings.difficulty)
+  const [soundEnabled, setSoundEnabled] = useState(settings.soundEnabled)
+  const [showKeyboard, setShowKeyboard] = useState(settings.virtualKeyboard)
   const [showResultsModal, setShowResultsModal] = useState(false)
   const [showCertificateModal, setShowCertificateModal] = useState(false)
   const [showCustomTextModal, setShowCustomTextModal] = useState(false)
@@ -47,7 +49,6 @@ export function TypingTest() {
     totalTypedChars,
     currentWpm,
     currentAccuracy,
-    lastPressedKey,
     handleKeyDown,
     handlePaste,
     focusInput,
@@ -64,6 +65,11 @@ export function TypingTest() {
   useEffect(() => {
     focusInput()
   }, [focusInput])
+
+  const updateDuration = value => { setDuration(value); updateSettings({ duration: value }) }
+  const updateDifficulty = value => { setDifficulty(value); updateSettings({ difficulty: value }) }
+  const updateSound = value => { setSoundEnabled(value); updateSettings({ soundEnabled: value }) }
+  const toggleKeyboard = () => { const value = !showKeyboard; setShowKeyboard(value); updateSettings({ virtualKeyboard: value }) }
 
   const handleTryAgain = () => {
     setShowResultsModal(false)
@@ -82,59 +88,62 @@ export function TypingTest() {
   }
 
   const activeTargetChar = text[userInput.length] || ''
-  const displayName = profile?.display_name || profile?.username || 'Typist'
+  const displayName = profile?.display_name || profile?.username || 'User'
+
+  const supportCardsVisible = status !== 'running'
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <SEOHead
         title="Online Typing Speed Test — Test Your WPM"
         description="Free online typing test with real-time WPM calculation, accuracy tracking, customizable test durations and difficulty modes."
       />
 
       {/* Header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-3xl font-black tracking-[-0.04em] text-slate-900 dark:text-white sm:text-4xl">
               Typing Speed Test
             </h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold">
-              Live Engine
+            <span className="rounded-full border border-brand-500/20 bg-brand-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-300">
+              Live
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Test your pure velocity and accuracy. Start typing anytime to begin the timer.
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 sm:text-base">
+            Test your typing speed and accuracy.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            onClick={() => setShowKeyboard(!showKeyboard)}
+            onClick={toggleKeyboard}
             icon={showKeyboard ? EyeOff : Eye}
+            className="text-slate-600 dark:text-slate-300"
           >
-            {showKeyboard ? 'Hide Keyboard' : 'Show Keyboard'}
+            {showKeyboard ? 'Hide Keyboard' : 'Keyboard'}
           </Button>
         </div>
       </div>
 
       {/* Test Controls */}
-      <div className="mb-6">
+      <div className="mb-4">
         <TypingControls
           duration={duration}
-          setDuration={setDuration}
+          setDuration={updateDuration}
           difficulty={difficulty}
-          setDifficulty={setDifficulty}
+          setDifficulty={updateDifficulty}
           soundEnabled={soundEnabled}
-          setSoundEnabled={setSoundEnabled}
+          setSoundEnabled={updateSound}
           onRestart={restartTest}
           disabled={status === 'running'}
         />
       </div>
 
       {/* Live Stats Bar */}
-      <div className="mb-6">
+      <div className="mb-4">
         <LiveStatsBar
           timeLeft={timeLeft}
           currentWpm={currentWpm}
@@ -142,11 +151,13 @@ export function TypingTest() {
           correctChars={correctChars}
           totalTypedChars={totalTypedChars}
           status={status}
+          showLiveWpm={settings.showLiveWpm}
+          showAccuracy={settings.showAccuracy}
         />
       </div>
 
       {/* Interactive Typing Surface */}
-      <div className="mb-6">
+      <div className="mb-4">
         <TypingArea
           text={text}
           userInput={userInput}
@@ -162,37 +173,39 @@ export function TypingTest() {
 
       {/* Optional Virtual Keyboard Visualizer */}
       {showKeyboard && (
-        <div className="mb-6 animate-fade-in">
-          <VirtualKeyboard activeKey={activeTargetChar} pressedKey={lastPressedKey} />
+        <div className="mb-4 transition-all duration-200 ease-out">
+          <VirtualKeyboard activeKey={activeTargetChar} showFingerGuide={settings.fingerGuide} keyHighlight={settings.keyHighlight} keyPressAnimation={settings.keyPressAnimation} />
         </div>
       )}
 
       {/* Tips & Ergonomics Quick Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-500 dark:text-slate-400">
-        <Card className="p-4 flex items-start gap-3">
-          <Keyboard className="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-slate-700 dark:text-slate-200">Home Row Rest Position</p>
-            <p className="mt-0.5">Keep index fingers anchored on F & J tactile bumps.</p>
-          </div>
-        </Card>
+      {supportCardsVisible && (
+        <div className="grid grid-cols-1 gap-3 text-xs text-slate-500 dark:text-slate-400 md:grid-cols-3">
+          <Card className="flex items-start gap-3 p-3.5">
+            <Keyboard className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-500" />
+            <div>
+              <p className="font-semibold text-slate-700 dark:text-slate-200">Home Row Rest Position</p>
+              <p className="mt-0.5">Keep index fingers anchored on F & J tactile bumps.</p>
+            </div>
+          </Card>
 
-        <Card className="p-4 flex items-start gap-3">
-          <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-slate-700 dark:text-slate-200">Standardized Formula</p>
-            <p className="mt-0.5">WPM is strictly (Correct Chars / 5) per minute elapsed.</p>
-          </div>
-        </Card>
+          <Card className="flex items-start gap-3 p-3.5">
+            <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
+            <div>
+              <p className="font-semibold text-slate-700 dark:text-slate-200">Standardized Formula</p>
+              <p className="mt-0.5">WPM is strictly (Correct Chars / 5) per minute elapsed.</p>
+            </div>
+          </Card>
 
-        <Card className="p-4 flex items-start gap-3">
-          <Sparkles className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-slate-700 dark:text-slate-200">Continuous Rhythm</p>
-            <p className="mt-0.5">Focus on steady rhythm over frantic short bursts.</p>
-          </div>
-        </Card>
-      </div>
+          <Card className="flex items-start gap-3 p-3.5">
+            <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-violet-500" />
+            <div>
+              <p className="font-semibold text-slate-700 dark:text-slate-200">Continuous Rhythm</p>
+              <p className="mt-0.5">Focus on steady rhythm over frantic short bursts.</p>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Completion Modal */}
       <TestResultsModal

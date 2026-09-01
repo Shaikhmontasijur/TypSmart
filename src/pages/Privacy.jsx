@@ -8,8 +8,8 @@ export function Privacy() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <SEOHead
-        title="Privacy Policy — TypeFlow"
-        description="TypeFlow respects your privacy. Learn how we handle your keystroke telemetry and profile information."
+        title="Privacy Policy — TypSmart"
+        description="TypSmart respects your privacy. Learn how we handle your keystroke telemetry and profile information."
       />
 
       <div className="mb-8">
@@ -26,7 +26,7 @@ export function Privacy() {
         <section>
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">1. Information We Collect</h2>
           <p>
-            When you use TypeFlow, we collect basic test metrics (Words Per Minute, accuracy percentage, test duration, and character counts). If you register an account, we store your email, username, and display name securely using PostgreSQL and Supabase Authentication.
+            When you use TypSmart, we collect basic test metrics (Words Per Minute, accuracy percentage, test duration, and character counts). If you register an account, we store your email, username, and display name securely using PostgreSQL and Supabase Authentication.
           </p>
         </section>
 
@@ -47,7 +47,7 @@ export function Privacy() {
         <section>
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">4. Third-Party Services</h2>
           <p>
-            TypeFlow utilizes Supabase for secure cloud authentication and database management, and Cloudflare Pages for edge content delivery. No third-party tracking scripts or advertising trackers are installed.
+            TypSmart utilizes Supabase for secure cloud authentication and database management, and Cloudflare Pages for edge content delivery. No third-party tracking scripts or advertising trackers are installed.
           </p>
         </section>
 

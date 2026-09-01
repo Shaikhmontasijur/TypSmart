@@ -158,7 +158,7 @@ export const typingService = {
             rank: idx + 1,
             id: item.id,
             username: item.profiles?.username || 'Typist',
-            displayName: item.profiles?.display_name || item.profiles?.username || 'Speed Typist',
+            displayName: item.profiles?.display_name || item.profiles?.username || 'User',
             avatarUrl: item.profiles?.avatar_url,
             wpm: Math.round(Number(item.wpm)),
             accuracy: Math.round(Number(item.accuracy)),

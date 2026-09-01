@@ -1,4 +1,4 @@
-// Original curriculum for TypeFlow Practice Lessons
+// Original curriculum for TypSmart Practice Lessons
 
 export const LESSONS_DATA = [
   // Beginner Tier

@@ -16,7 +16,7 @@ export const isSupabaseConfigured = Boolean(
 
 if (!isSupabaseConfigured && import.meta.env.DEV) {
   console.info(
-    '%c[TypeFlow Supabase]%c Running in local offline persistence mode. To connect Supabase production, set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env or .env.local.',
+    '%c[TypSmart Supabase]%c Running in local offline persistence mode. To connect Supabase production, set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env or .env.local.',
     'color: #0284c7; font-weight: bold;',
     'color: inherit;'
   )

@@ -254,19 +254,20 @@ export function LessonDetail() {
           </div>
         )}
 
-        <div className="break-words">
-          {lesson.content.split('').map((char, index) => {
+        <div className="typing-passage break-words">
+          {Array.from(lesson.content).map((char, index) => {
             const isTyped = index < userInput.length
             const isCurrent = index === userInput.length
             const isCorrect = isTyped && userInput[index] === char
             const isIncorrect = isTyped && userInput[index] !== char
+            const isSpace = char === ' '
 
             let charClass = 'text-slate-400 dark:text-slate-500'
 
             if (isCorrect) {
-              charClass = 'text-emerald-600 dark:text-emerald-400 font-medium'
+              charClass = 'text-emerald-600 dark:text-emerald-400'
             } else if (isIncorrect) {
-              charClass = 'text-red-500 dark:text-red-400 bg-red-500/20 underline decoration-red-500 decoration-2'
+              charClass = 'text-red-500 dark:text-red-400 bg-red-500/10 underline decoration-red-500 decoration-2'
             }
 
             return (
@@ -275,18 +276,12 @@ export function LessonDetail() {
                 className={cn(
                   'relative inline-block transition-colors duration-75',
                   charClass,
-                  isCurrent && 'bg-brand-500 text-white rounded px-0.5 animate-pulse-fast font-bold shadow-sm'
+                  isCurrent && 'border-b-2 border-brand-500 text-brand-600 dark:text-brand-300 pb-0.5',
+                  isSpace && 'min-w-[0.42em]'
                 )}
+                style={isSpace ? { whiteSpace: 'pre' } : undefined}
               >
-                {char === ' ' ? (
-                  isIncorrect ? (
-                    <span className="text-red-400 font-sans">_</span>
-                  ) : (
-                    ' '
-                  )
-                ) : (
-                  char
-                )}
+                {char}
               </span>
             )
           })}

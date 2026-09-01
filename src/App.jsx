@@ -19,6 +19,7 @@ import { Privacy } from './pages/Privacy'
 import { Terms } from './pages/Terms'
 import { Contact } from './pages/Contact'
 import { NotFound } from './pages/NotFound'
+import { Settings } from './pages/Settings'
 
 export function App() {
   return (
@@ -32,6 +33,7 @@ export function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

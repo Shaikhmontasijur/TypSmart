@@ -3,72 +3,150 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans;
+ html {
+   scroll-behavior: smooth;
   }
+
+ body {
+   @apply bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans;
+   background-image:
+     radial-gradient(circle at top, rgba(56, 189, 248, 0.08), transparent 30%),
+     radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.07), transparent 26%);
+   background-attachment: fixed;
+ }
+
+ #root {
+   @apply min-h-screen;
+ }
+
+ ::selection {
+   @apply bg-brand-200/80 text-slate-900;
+ }
 }
 
-/* Custom scrollbar for modern aesthetics */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+ width: 8px;
+ height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+ background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-slate-400 dark:hover:bg-slate-600;
+ @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-slate-400 dark:hover:bg-slate-600;
 }
 
-/* Smooth typing caret animation */
+.typing-text {
+ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+ font-size: clamp(1.2rem, 0.95vw + 1rem, 1.9rem);
+ line-height: 1.7;
+ letter-spacing: 0.02em;
+ white-space: pre-wrap;
+ overflow-wrap: break-word;
+ word-break: normal;
+}
+
+.typing-content {
+ min-width: 0;
+ white-space: pre-wrap;
+ overflow-wrap: break-word;
+ word-break: normal;
+}
+
 @keyframes smooth-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+ 0%, 100% { opacity: 1; }
+ 50% { opacity: 0; }
+}
+
+@keyframes premium-cursor-blink {
+ 0%, 100% { opacity: 0.9; }
+ 50% { opacity: 0.2; }
 }
 
 .typing-caret {
-  animation: smooth-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+ animation: smooth-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .typing-passage {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  word-spacing: 0.18em;
-  white-space: pre-wrap;
+ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+ font-size: clamp(1.18rem, 1.4vw + 0.9rem, 2rem);
+ line-height: 1.72;
+ letter-spacing: 0.015em;
+ word-spacing: 0.12em;
+ white-space: pre-wrap;
+ color: rgba(148, 163, 184, 0.9);
+}
+
+.typing-current {
+ position: relative;
+ background: rgba(96, 165, 250, 0.12);
+ color: rgb(125 211 252);
+ border-radius: 0.28rem;
+ box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.22), 0 0 0 1px rgba(59, 130, 246, 0.08);
 }
 
 .typing-current::before {
-  position: absolute;
-  top: 0.12em;
-  bottom: 0.12em;
-  left: -0.12em;
-  width: 2px;
-  border-radius: 999px;
-  background: currentColor;
-  content: '';
-  animation: smooth-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+ position: absolute;
+ left: -0.08em;
+ bottom: 0.14em;
+ width: 2px;
+ height: 1.1em;
+ border-radius: 999px;
+ background: rgba(125, 211, 252, 1);
+ content: '';
+ animation: smooth-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Premium Cursor Implementation */
+.typing-cursor-container {
+ position: relative;
+ background: rgba(96, 165, 250, 0.12);
+ color: rgb(148, 163, 184);
+ border-radius: 0.28rem;
+ box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.22), 0 0 0 1px rgba(59, 130, 246, 0.08);
+}
+
+.typing-cursor-container::before {
+ position: absolute;
+ left: -0.12em;
+ top: 50%;
+ transform: translateY(-50%);
+ width: 1.5px;
+ height: 1.15em;
+ border-radius: 999px;
+ background: linear-gradient(180deg, rgba(125, 211, 252, 0.9) 0%, rgba(125, 211, 252, 0.5) 100%);
+ box-shadow: 0 0 8px rgba(125, 211, 252, 0.6), 0 0 12px rgba(125, 211, 252, 0.3);
+ content: '';
+ animation: premium-cursor-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+ pointer-events: none;
 }
 
 .keyboard-key-pressed {
-  animation: key-press 180ms ease-out;
+ animation: key-press 140ms ease-out;
 }
 
 @keyframes key-press {
-  0% { transform: translateY(0); }
-  45% { transform: translateY(1px) scale(0.96); box-shadow: inset 0 2px 5px rgb(15 23 42 / 0.18); }
-  100% { transform: translateY(0); }
+ 0% { transform: translateY(0); }
+ 45% { transform: translateY(1px) scale(0.98); box-shadow: inset 0 2px 4px rgb(15 23 42 / 0.12); }
+ 100% { transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .typing-caret,
-  .typing-current::before,
-  .keyboard-key-pressed {
-    animation: none;
-  }
+ .typing-caret,
+ .typing-current::before,
+ .typing-cursor-container::before,
+ .keyboard-key-pressed {
+   animation: none;
+ }
 }
 
 /* Glassmorphism helpers */
 .glass-panel {
-  @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80;
+ @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80;
 }
+
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+.high-contrast { filter: contrast(1.15); }
+.larger-text { font-size: 112.5%; }
+.compact-mode main { line-height: 1.35; }

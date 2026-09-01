@@ -31,11 +31,11 @@ export function Home() {
 
   const faqs = [
     {
-      q: 'How does TypeFlow calculate typing speed (WPM)?',
-      a: 'TypeFlow uses the international standardized formula: WPM = (Total Correct Characters / 5) / Elapsed Minutes. We account for 100% precision, ensuring that raw keystroke speed is balanced against error penalization.'
+      q: 'How does TypSmart calculate typing speed (WPM)?',
+      a: 'TypSmart uses the international standardized formula: WPM = (Total Correct Characters / 5) / Elapsed Minutes. We account for 100% precision, ensuring that raw keystroke speed is balanced against error penalization.'
     },
     {
-      q: 'Can I use TypeFlow for free?',
+      q: 'Can I use TypSmart for free?',
       a: 'Yes! All core typing tests, baseline practice lessons, and local analytics are 100% free without paywalls or invasive advertisements.'
     },
     {
@@ -47,7 +47,7 @@ export function Home() {
       a: 'No, you can immediately test your typing speed as a guest. Creating a free account allows you to sync your progression across devices, earn milestone badges, and compete on the global leaderboard.'
     },
     {
-      q: 'Does TypeFlow support code syntax and advanced punctuation?',
+      q: 'Does TypSmart support code syntax and advanced punctuation?',
       a: 'Yes! Our Advanced Practice tier includes dedicated developer syntax exercises, complete with brackets, operators, camelCase, and punctuation endurance drills.'
     }
   ]
@@ -55,8 +55,8 @@ export function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="TypeFlow — Master Your Keyboard. One Test. One Skill. Every Day."
-        description="Build real typing speed, accuracy and confidence through focused practice and measurable progress with TypeFlow."
+        title="TypSmart — Master Your Keyboard. One Test. One Skill. Every Day."
+        description="Build real typing speed, accuracy and confidence through focused practice and measurable progress with TypSmart."
       />
 
       {/* Hero Section */}
@@ -136,18 +136,18 @@ export function Home() {
         </div>
       </section>
 
-      {/* Why TypeFlow Section */}
+      {/* Why TypSmart Section */}
       <section className="py-20 bg-slate-100/50 dark:bg-slate-900/30 border-b border-slate-200/60 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <Badge variant="brand" size="md" className="mb-3">
-              Why TypeFlow
+              Why TypSmart
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Engineered for Deliberate Mastery
             </h2>
             <p className="mt-4 text-slate-600 dark:text-slate-400 text-base">
-              Typing is the primary bridge between your brain and the digital world. We built TypeFlow to make that bridge effortless.
+              Typing is the primary bridge between your brain and the digital world. We built TypSmart to make that bridge effortless.
             </p>
           </div>
 

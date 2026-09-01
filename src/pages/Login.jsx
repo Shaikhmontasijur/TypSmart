@@ -33,8 +33,8 @@ export function Login() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
       <SEOHead
-        title="Sign In — Access Your TypeFlow Account"
-        description="Sign in to TypeFlow to sync your typing progress, view lifetime analytics and climb the global leaderboard."
+        title="Sign In — Access Your TypSmart Account"
+        description="Sign in to TypSmart to sync your typing progress, view lifetime analytics and climb the global leaderboard."
       />
 
       <div className="w-full max-w-md space-y-6">
@@ -43,7 +43,7 @@ export function Login() {
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-accent-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
               <Zap className="w-6 h-6 fill-current" />
             </div>
-            <span className="text-slate-900 dark:text-white">TYPEFLOW</span>
+            <span className="text-slate-900 dark:text-white">TYPERSMART</span>
           </Link>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white">Welcome Back</h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">

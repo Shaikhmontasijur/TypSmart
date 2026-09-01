@@ -1,15 +1,12 @@
 import React from 'react'
 import { cn } from '../../lib/utils'
 
-export function VirtualKeyboard({ activeKey = '', pressedKey = { key: '', sequence: 0 }, className = '' }) {
+export function VirtualKeyboard({ activeKey = '', className = '', showFingerGuide = true, keyHighlight = true, keyPressAnimation = true }) {
   // Normalize active key
   const normalizedKey = activeKey.toLowerCase()
-  const normalizedPressedKey = pressedKey.key.toLowerCase()
-  const requiresShift = activeKey.length === 1 && activeKey !== activeKey.toLowerCase()
 
   const keyboardRows = [
     [
-      { label: 'Esc', finger: 'lp', width: 'w-10 sm:w-12' },
       { label: '`', shift: '~', finger: 'lp', width: 'w-8 sm:w-10' },
       { label: '1', shift: '!', finger: 'lp', width: 'w-8 sm:w-10' },
       { label: '2', shift: '@', finger: 'lr', width: 'w-8 sm:w-10' },
@@ -92,43 +89,35 @@ export function VirtualKeyboard({ activeKey = '', pressedKey = { key: '', sequen
   }
 
   const isKeyActive = (key) => {
-    if (!activeKey) return false
+    if (!keyHighlight || !activeKey) return false
     if (key.label === ' ' && activeKey === ' ') return true
     if (key.label.toLowerCase() === normalizedKey) return true
     if (key.shift && key.shift === activeKey) return true
     return false
   }
 
-  const isKeyPressed = (key) => {
-    if (!pressedKey.key) return false
-    if (key.label === ' ' && pressedKey.key === ' ') return true
-    return key.label.toLowerCase() === normalizedPressedKey
-  }
-
   return (
-    <div className={cn('p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-x-auto', className)}>
-      <div className="flex flex-col items-center gap-1.5 min-w-[620px]">
+    <div className={cn('overflow-x-auto rounded-2xl border border-slate-700/80 bg-slate-900/80 p-4 shadow-[0_18px_35px_-24px_rgba(15,23,42,0.75)] backdrop-blur-sm sm:p-5', className)}>
+      <div className="flex min-w-[560px] flex-col items-center gap-1.5">
         {keyboardRows.map((row, rIdx) => (
-          <div key={rIdx} className="flex gap-1 sm:gap-1.5">
+          <div key={rIdx} className="flex gap-1.5 sm:gap-1.5">
             {row.map((key, kIdx) => {
-              const active = isKeyActive(key) || (requiresShift && key.label === 'Shift')
-              const pressed = isKeyPressed(key)
+              const active = isKeyActive(key)
               return (
                 <div
-                  key={`${rIdx}-${kIdx}-${pressed ? pressedKey.sequence : 0}`}
+                  key={kIdx}
                   className={cn(
-                    'h-10 sm:h-12 rounded-xl flex flex-col items-center justify-center font-mono text-xs font-bold transition-all duration-100 select-none relative border',
+                    'relative flex h-9 select-none flex-col items-center justify-center rounded-xl border font-mono text-[11px] font-bold transition-all duration-100 sm:h-10',
                     key.width,
                     active
-                      ? 'bg-brand-500 text-white border-brand-400 scale-105 shadow-md shadow-brand-500/30 z-10'
-                      : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700/80',
-                    pressed && 'keyboard-key-pressed',
-                    key.home && !active && 'border-b-2 border-b-brand-500/50'
+                      ? `z-10 border-sky-400 bg-sky-500 text-white shadow-[0_12px_22px_-16px_rgba(56,189,248,0.9)] ${keyPressAnimation ? 'keyboard-key-pressed' : ''}`
+                      : 'border-slate-700 bg-slate-800/80 text-slate-200',
+                    key.home && !active && 'border-b-sky-500/40'
                   )}
                 >
-                  <span key={pressed ? pressedKey.sequence : undefined}>{key.displayLabel || key.label}</span>
+                  <span>{key.displayLabel || key.label}</span>
                   {key.bump && (
-                    <span className="w-2 h-0.5 bg-slate-400 dark:text-slate-500 rounded-full mt-0.5" />
+                    <span className="mt-0.5 h-0.5 w-2 rounded-full bg-slate-400/80" />
                   )}
                 </div>
               )
@@ -137,15 +126,16 @@ export function VirtualKeyboard({ activeKey = '', pressedKey = { key: '', sequen
         ))}
       </div>
 
-      {/* Finger Legend */}
-      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-center gap-3 text-[11px] text-slate-500">
-        <span className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Finger Guide:</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-pink-400" /> Pinky</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-400" /> Ring</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-400" /> Middle</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Index</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Thumb (Space)</span>
-      </div>
+      {showFingerGuide && (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3 border-t border-slate-700/80 pt-3 text-[11px] text-slate-400">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Finger Guide</span>
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-pink-400" /> Pinky</span>
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-purple-400" /> Ring</span>
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-blue-400" /> Middle</span>
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> Index</span>
+          <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /> Thumb</span>
+        </div>
+      )}
     </div>
   )
 }

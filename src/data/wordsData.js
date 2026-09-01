@@ -1,4 +1,4 @@
-// Original high-quality word lists and prompt pools for TypeFlow
+// Original high-quality word lists and prompt pools for TypSmart, curated for typing practice and testing. These lists are designed to provide a range of difficulty levels, from common words to complex sentences and code snippets, ensuring a comprehensive typing experience.
 
 export const WORDS_EASY = [
   'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',

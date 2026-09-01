@@ -10,8 +10,8 @@ export function About() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <SEOHead
-        title="About TypeFlow — Philosophy & Mission"
-        description="TypeFlow is designed to turn typing into an enjoyable, measurable daily discipline."
+        title="About TypSmart — Philosophy & Mission"
+        description="TypSmart is designed to turn typing into an enjoyable, measurable daily discipline."
       />
 
       <div className="text-center mb-12">
@@ -29,13 +29,13 @@ export function About() {
       <div className="space-y-8 text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
         <Card className="p-8">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-brand-500" /> The Philosophy of TypeFlow
+            <Zap className="w-5 h-5 text-brand-500" /> The Philosophy of TypSmart
           </h2>
           <p className="mb-4">
             Typing is the fundamental cognitive bottleneck between human intent and computer execution. Whether writing code, drafting strategic documents, or communicating across teams, your typing velocity and accuracy dictate the friction with which your thoughts materialize.
           </p>
           <p>
-            We built TypeFlow with a single guiding principle: eliminate all noise, gamify deliberate repetition, and provide instantaneous, uncompromising mechanical feedback so every keystroke compounds towards effortless fluency.
+            We built TypSmart with a single guiding principle: eliminate all noise, gamify deliberate repetition, and provide instantaneous, uncompromising mechanical feedback so every keystroke compounds towards effortless fluency.
           </p>
         </Card>
 

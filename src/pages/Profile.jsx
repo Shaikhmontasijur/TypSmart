@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useTypingStats } from '../contexts/TypingStatsContext'
 import { SEOHead } from '../components/common/SEOHead'
@@ -18,9 +18,15 @@ export function Profile() {
   const [showCertModal, setShowCertModal] = useState(false)
   const [displayName, setDisplayName] = useState(profile?.display_name || 'Typist')
   const [username, setUsername] = useState(profile?.username || 'user')
-  const [bio, setBio] = useState(profile?.bio || 'Dedicated TypeFlow typist.')
+  const [bio, setBio] = useState(profile?.bio || 'Dedicated TypSmart typist.')
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+
+  useEffect(() => {
+    setDisplayName(profile?.display_name || profile?.username || 'User')
+    setUsername(profile?.username || 'User')
+    setBio(profile?.bio || 'Dedicated TypSmart typist.')
+  }, [profile])
 
   const handleSave = async (e) => {
     e.preventDefault()
@@ -28,7 +34,7 @@ export function Profile() {
     setSuccessMsg('')
     const { error } = await updateProfile({
       display_name: displayName,
-      username: username.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''),
+      username: username.trim().replace(/[^a-zA-Z0-9_]/g, ''),
       bio
     })
     setSaving(false)
@@ -45,7 +51,7 @@ export function Profile() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <SEOHead
         title="Typist Profile & Performance Records"
-        description="Manage your TypeFlow typist identity, monitor all-time velocity records, and review completed milestones."
+        description="Manage your TypSmart typist identity, monitor all-time velocity records, and review completed milestones."
       />
 
       {/* Header Card */}
@@ -59,7 +65,7 @@ export function Profile() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                  {profile?.display_name || profile?.username || 'Typist'}
+                  {profile?.display_name || profile?.username || 'User'}
                 </h1>
                 <Badge variant="brand" size="sm">
                   Active Typist
@@ -216,7 +222,7 @@ export function Profile() {
       <CertificateModal
         isOpen={showCertModal}
         onClose={() => setShowCertModal(false)}
-        userName={displayName}
+        userName={profile?.username || 'User'}
         wpm={stats.bestWpm}
         accuracy={stats.averageAccuracy || 98}
       />

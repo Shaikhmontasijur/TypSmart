@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 const AuthContext = createContext()
@@ -7,15 +7,46 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const profileRequestRef = useRef(0)
+
+  const fetchProfile = async (userId) => {
+    if (!isSupabaseConfigured || !supabase) return null
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle()
+
+      if (error) {
+        console.warn('Profile fetch error:', error)
+        return null
+      }
+      return data
+    } catch (err) {
+      console.warn('Fetch profile error:', err)
+      return null
+    }
+  }
+
+  const loadProfile = async (authUser) => {
+    const requestId = ++profileRequestRef.current
+    setProfile(null)
+    const profileData = await fetchProfile(authUser.id)
+    if (requestId === profileRequestRef.current) {
+      setProfile(profileData)
+    }
+  }
 
   // Load session
   useEffect(() => {
     let mounted = true
+    let subscription
 
     async function initAuth() {
       if (!isSupabaseConfigured || !supabase) {
         // Fallback local session for offline/demo preview
-        const storedUser = localStorage.getItem('typeflow_guest_user')
+        const storedUser = localStorage.getItem('_guest_user')
         if (storedUser) {
           try {
             const parsed = JSON.parse(storedUser)
@@ -37,7 +68,7 @@ export function AuthProvider({ children }) {
 
         if (session?.user) {
           if (mounted) setUser(session.user)
-          await fetchProfile(session.user.id)
+          await loadProfile(session.user)
         }
       } catch (err) {
         console.warn('Supabase auth session error:', err)
@@ -46,59 +77,40 @@ export function AuthProvider({ children }) {
       }
 
       // Listen for auth state changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!mounted) return
         if (session?.user) {
           setUser(session.user)
-          await fetchProfile(session.user.id)
+          await loadProfile(session.user)
         } else {
+          profileRequestRef.current += 1
           setUser(null)
           setProfile(null)
         }
         setLoading(false)
       })
-
-      return () => {
-        subscription?.unsubscribe()
-      }
+      subscription = data.subscription
     }
 
     initAuth()
 
     return () => {
       mounted = false
+      subscription?.unsubscribe()
     }
   }, [])
 
-  const fetchProfile = async (userId) => {
-    if (!isSupabaseConfigured || !supabase) return
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.warn('Profile fetch error:', error)
-      }
-      if (data) {
-        setProfile(data)
-      }
-    } catch (err) {
-      console.warn('Fetch profile error:', err)
-    }
-  }
-
   const signUp = async ({ email, password, username, displayName }) => {
+    const normalizedUsername = String(username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '')
+    const cleanDisplayName = String(displayName || '').trim()
+
     if (!isSupabaseConfigured || !supabase) {
-      // Local fallback account
       const localId = 'local_' + Math.random().toString(36).substring(2, 9)
       const mockUser = { id: localId, email }
       const mockProfile = {
         id: localId,
-        username: username || email.split('@')[0],
-        display_name: displayName || username || 'Typist',
+        username: normalizedUsername || 'user',
+        display_name: cleanDisplayName || normalizedUsername || 'User',
         avatar_url: '',
         bio: 'Dedicated TypeFlow typist.',
         created_at: new Date().toISOString()
@@ -115,8 +127,8 @@ export function AuthProvider({ children }) {
         password,
         options: {
           data: {
-            username: username || email.split('@')[0],
-            display_name: displayName || username || 'Typist'
+            username: normalizedUsername || 'user',
+            display_name: cleanDisplayName || normalizedUsername || 'User'
           }
         }
       })
@@ -124,16 +136,13 @@ export function AuthProvider({ children }) {
       if (error) throw error
 
       if (data.user) {
-        // Upsert profile in case trigger didn't run
         const profileData = {
           id: data.user.id,
-          username: username || email.split('@')[0],
-          display_name: displayName || username || 'Typist',
+          username: normalizedUsername || 'user',
+          display_name: cleanDisplayName || normalizedUsername || 'User',
           avatar_url: '',
           updated_at: new Date().toISOString()
         }
-
-        await supabase.from('profiles').upsert(profileData)
         setUser(data.user)
         setProfile(profileData)
       }
@@ -161,10 +170,10 @@ export function AuthProvider({ children }) {
       const mockUser = { id: localId, email }
       const mockProfile = {
         id: localId,
-        username: email.split('@')[0],
-        display_name: email.split('@')[0],
+        username: 'User',
+        display_name: 'User',
         avatar_url: '',
-        bio: 'Dedicated TypeFlow typist.',
+        bio: 'Dedicated TypSmart typist.',
         created_at: new Date().toISOString()
       }
       localStorage.setItem('typeflow_guest_user', JSON.stringify({ user: mockUser, profile: mockProfile }))
@@ -181,7 +190,6 @@ export function AuthProvider({ children }) {
       if (error) throw error
       if (data.user) {
         setUser(data.user)
-        await fetchProfile(data.user.id)
       }
       return { data, error: null }
     } catch (error) {
@@ -190,6 +198,7 @@ export function AuthProvider({ children }) {
   }
 
   const signOut = async () => {
+    profileRequestRef.current += 1
     if (isSupabaseConfigured && supabase) {
       await supabase.auth.signOut()
     }

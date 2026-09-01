@@ -1,0 +1,35 @@
+import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Settings as SettingsIcon, Volume2, Monitor, Keyboard, Accessibility, User, Check } from 'lucide-react'
+import { useSettings } from '../contexts/SettingsContext'
+import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
+import { Card } from '../components/common/Card'
+import { Button } from '../components/common/Button'
+import { SEOHead } from '../components/common/SEOHead'
+
+const Toggle = ({ label, description, checked, onChange }) => <div className="flex items-center justify-between gap-4 py-3 border-b last:border-0 border-slate-100 dark:border-slate-800"><div><p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</p><p className="text-xs text-slate-500 mt-0.5">{description}</p></div><button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={`w-11 h-6 rounded-full p-0.5 transition ${checked ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'}`}><span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : ''}`} /></button></div>
+const Select = ({ label, value, options, onChange }) => <label className="block py-2"><span className="block text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1.5">{label}</span><select value={value} onChange={e => onChange(e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"><>{options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</></select></label>
+const Section = ({ icon: Icon, title, children }) => <Card className="p-5 sm:p-6"><div className="flex items-center gap-2 mb-3"><Icon className="w-4 h-4 text-brand-500" /><h2 className="font-bold text-slate-900 dark:text-white">{title}</h2></div>{children}</Card>
+
+export function Settings() {
+  const { settings, updateSettings, resetSettings } = useSettings()
+  const { theme, setTheme } = useTheme()
+  const { user, profile, signOut } = useAuth()
+  const [saved, setSaved] = useState(false)
+  const update = changes => { updateSettings(changes); setSaved(true); window.setTimeout(() => setSaved(false), 1800) }
+  const toggles = (items) => items.map(([key, label, description]) => <Toggle key={key} label={label} description={description} checked={settings[key]} onChange={value => update({ [key]: value })} />)
+
+  return <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <SEOHead title="Settings — TypSmart" description="Personalize your TypSmart typing and accessibility preferences." />
+    <div className="flex flex-wrap items-start justify-between gap-4 mb-8"><div><div className="flex items-center gap-2"><SettingsIcon className="w-6 h-6 text-brand-500" /><h1 className="text-3xl font-extrabold">Settings</h1></div><p className="text-sm text-slate-500 mt-1">Preferences are saved securely on this device.</p></div>{saved && <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600"><Check className="w-4 h-4" /> Saved</span>}</div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <Section icon={Keyboard} title="Typing"><Select label="Test duration" value={settings.duration} onChange={value => update({ duration: Number(value) })} options={[15,30,60,120].map(value => ({ value, label: `${value} seconds` }))} /><Select label="Difficulty" value={settings.difficulty} onChange={value => update({ difficulty: value })} options={[['easy','Beginner'],['medium','Intermediate'],['hard','Advanced']].map(([value,label]) => ({value,label}))} /><Select label="Caret style" value={settings.caretStyle} onChange={value => update({ caretStyle: value })} options={['line','block','underline'].map(value => ({value,label:value[0].toUpperCase()+value.slice(1)}))} />{toggles([['autoRestart','Auto restart','Begin a fresh test after results.'],['showLiveWpm','Show live WPM','Display current speed while typing.'],['showAccuracy','Show accuracy','Display live typing accuracy.']])}</Section>
+      <Section icon={Keyboard} title="Keyboard"><>{toggles([['virtualKeyboard','Virtual keyboard','Show the keyboard visualizer by default.'],['fingerGuide','Finger guide','Show the finger-color legend.'],['keyHighlight','Key highlight','Highlight the next expected key.'],['keyPressAnimation','Key press animation','Animate highlighted keys.']])}</></Section>
+      <Section icon={Volume2} title="Sound"><>{toggles([['soundEnabled','Typing sound','Enable responsive Web Audio feedback.'],['errorSound','Error sound','Play subtle feedback for incorrect characters.'],['correctSound','Correct key sound','Play feedback for correct keys.'],['spacebarSound','Spacebar sound','Play feedback for spaces.'],['backspaceSound','Backspace sound','Play feedback when deleting.'],['finishSound','Finish sound','Play feedback when a test ends.'],['uiClickSound','UI click sound','Enable optional interface click feedback.']])}</><Select label="Sound pack" value={settings.soundPack} onChange={value => update({ soundPack: value })} options={['mechanical','soft','typewriter','minimal','click','silent'].map(value => ({value,label:value[0].toUpperCase()+value.slice(1)}))} /><label className="block pt-3"><span className="text-sm font-semibold">Sound volume: {settings.volume}%</span><input className="w-full accent-brand-500 mt-2" type="range" min="0" max="100" value={settings.volume} onChange={e => update({ volume: Number(e.target.value) })} /></label></Section>
+      <Section icon={Monitor} title="Appearance"><Select label="Theme" value={theme} onChange={setTheme} options={[{value:'system',label:'System'},{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} />{toggles([['compactMode','Compact mode','Tighten page spacing.'],['reduceAnimations','Reduce animations','Minimize non-essential animation.']])}</Section>
+      <Section icon={Accessibility} title="Accessibility"><>{toggles([['reduceAnimations','Reduce motion','Minimize animation throughout TypSmart.'],['highContrast','High contrast','Increase visual contrast.'],['largerText','Larger text','Increase the base text size.']])}</></Section>
+      <Section icon={User} title="Account"><div className="space-y-2 text-sm"><p><span className="text-slate-500">Username:</span> <strong>{profile?.username || 'User'}</strong></p><p><span className="text-slate-500">Display name:</span> {profile?.display_name || profile?.username || 'User'}</p><p className="truncate"><span className="text-slate-500">Email:</span> {user?.email || 'Not signed in'}</p></div><div className="flex flex-wrap gap-2 mt-5"><Link to="/profile"><Button size="sm" variant="outline">Edit profile</Button></Link><Button size="sm" variant="outline" onClick={resetSettings}>Reset preferences</Button><Button size="sm" variant="ghost" onClick={signOut} className="text-red-500">Logout</Button></div></Section>
+    </div>
+  </div>
+}

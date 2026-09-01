@@ -8,59 +8,61 @@ export function LiveStatsBar({
   currentAccuracy,
   correctChars,
   totalTypedChars,
-  status
+  status,
+  showLiveWpm = true,
+  showAccuracy = true
 }) {
   const isUrgent = timeLeft <= 5 && status === 'running'
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {/* Time Remaining */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div className={`p-2.5 rounded-xl ${isUrgent ? 'bg-red-500/10 text-red-500 animate-pulse' : 'bg-brand-500/10 text-brand-500'}`}>
-          <Timer className="w-5 h-5" />
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      {showLiveWpm && (
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/80 p-3.5 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.9)] backdrop-blur-sm">
+          <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${isUrgent ? 'bg-red-500/10 text-red-400 animate-pulse' : 'bg-sky-500/10 text-sky-300'}`}>
+            <Timer className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Time</p>
+            <p className={`mt-1 text-2xl font-bold font-mono tracking-tight transition-all duration-200 ${isUrgent ? 'text-red-400' : 'text-slate-50'}`}>
+              {formatTime(timeLeft)}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Time</p>
-          <p className={`text-2xl font-bold font-mono ${isUrgent ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
-            {formatTime(timeLeft)}
-          </p>
-        </div>
-      </div>
+      )}
 
-      {/* Live WPM */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-accent-500/10 text-accent-500">
-          <Zap className="w-5 h-5" />
+      {showAccuracy && (
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/80 p-3.5 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.9)] backdrop-blur-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
+            <Zap className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Live WPM</p>
+            <p className="mt-1 text-2xl font-bold font-mono tracking-tight text-slate-50">
+              {currentWpm}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Live WPM</p>
-          <p className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-            {currentWpm}
-          </p>
-        </div>
-      </div>
+      )}
 
-      {/* Accuracy */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
-          <Target className="w-5 h-5" />
+      <div className="flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/80 p-3.5 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.9)] backdrop-blur-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
+          <Target className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Accuracy</p>
-          <p className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Accuracy</p>
+          <p className="mt-1 text-2xl font-bold font-mono tracking-tight text-slate-50">
             {currentAccuracy}%
           </p>
         </div>
       </div>
 
-      {/* Keystrokes */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500">
-          <CheckCircle2 className="w-5 h-5" />
+      <div className="flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/80 p-3.5 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.9)] backdrop-blur-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-300">
+          <CheckCircle2 className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Characters</p>
-          <p className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Chars</p>
+          <p className="mt-1 text-2xl font-bold font-mono tracking-tight text-slate-50">
             {correctChars}<span className="text-sm font-normal text-slate-400">/{totalTypedChars}</span>
           </p>
         </div>

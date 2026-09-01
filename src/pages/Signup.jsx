@@ -21,20 +21,31 @@ export function Signup() {
     e.preventDefault()
     setErrorMsg('')
 
+    const cleanDisplayName = displayName.trim()
+    const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '')
+
+    if (!cleanDisplayName) {
+      setErrorMsg('Please enter a display name.')
+      return
+    }
+
     if (password.length < 6) {
       setErrorMsg('Password must be at least 6 characters long.')
       return
     }
 
-    setLoading(true)
+    if (!cleanUsername) {
+      setErrorMsg('Please enter a username using letters, numbers, or underscores.')
+      return
+    }
 
-    const cleanUsername = username.toLowerCase().trim().replace(/[^a-z0-9_]/g, '')
+    setLoading(true)
 
     const { error } = await signUp({
       email,
       password,
       username: cleanUsername,
-      displayName
+      displayName: cleanDisplayName
     })
 
     setLoading(false)
@@ -49,8 +60,8 @@ export function Signup() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
       <SEOHead
-        title="Create Free Account — TypeFlow"
-        description="Join TypeFlow to track your typing progression, save personal bests, and compete on the global leaderboard."
+        title="Create Free Account — TypSmart"
+        description="Join TypSmart to track your typing progression, save personal bests, and compete on the global leaderboard."
       />
 
       <div className="w-full max-w-md space-y-6">
@@ -59,7 +70,7 @@ export function Signup() {
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-accent-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
               <Zap className="w-6 h-6 fill-current" />
             </div>
-            <span className="text-slate-900 dark:text-white">TYPEFLOW</span>
+            <span className="text-slate-900 dark:text-white">TYPERSMART</span>
           </Link>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white">Create Your Account</h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">

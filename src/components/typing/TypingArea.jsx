@@ -39,13 +39,12 @@ export function TypingArea({
       <Card
         onClick={focusInput}
         className={cn(
-          'relative p-6 sm:p-8 min-h-[220px] max-h-[280px] overflow-y-auto cursor-text select-none font-mono text-[clamp(1.1rem,2.25vw,1.55rem)] leading-[1.8] tracking-normal transition-all border',
+          'relative min-h-[220px] max-h-[290px] overflow-y-auto cursor-text select-none border border-slate-200/70 bg-slate-950/90 p-4 text-left shadow-[0_22px_40px_-26px_rgba(2,6,23,0.9)] transition-all duration-200 typing-text dark:border-slate-800 sm:p-6',
           isFocused
-            ? 'border-brand-500/50 shadow-lg shadow-brand-500/5 ring-4 ring-brand-500/10'
-            : 'border-slate-200 dark:border-slate-800'
+            ? 'border-sky-400/50 ring-2 ring-sky-500/10 shadow-[0_22px_42px_-28px_rgba(56,189,248,0.75)]'
+            : 'border-slate-700/80 opacity-95'
         )}
       >
-        {/* Hidden Input field for keyboard capture */}
         <textarea
           ref={inputRef}
           value=""
@@ -62,28 +61,27 @@ export function TypingArea({
           aria-label="Typing test input"
         />
 
-        {/* Start hint badge */}
         {status === 'idle' && (
-          <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-sans font-semibold animate-pulse">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-500/10 px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-sky-200 uppercase dark:text-sky-300">
             <Sparkles className="w-3.5 h-3.5" />
-            Start typing to begin the test
+            Press any key to start
           </div>
         )}
 
-        {/* Render characters */}
-        <div ref={containerRef} className="typing-passage break-words" aria-live="polite">
-          {text.split('').map((char, index) => {
+        <div ref={containerRef} className="typing-passage break-words text-slate-200">
+          {Array.from(text).map((char, index) => {
             const isTyped = index < userInput.length
             const isCurrent = index === userInput.length
             const isCorrect = isTyped && userInput[index] === char
             const isIncorrect = isTyped && userInput[index] !== char
+            const isSpace = char === ' '
 
-            let charClass = 'text-slate-500 dark:text-slate-400'
+            let charClass = 'text-slate-400/90'
 
             if (isCorrect) {
-              charClass = 'text-emerald-600 dark:text-emerald-400 font-medium'
+              charClass = 'text-emerald-300 bg-emerald-500/8 rounded-[0.12rem]'
             } else if (isIncorrect) {
-              charClass = 'text-red-500 dark:text-red-400 bg-red-500/20 underline decoration-red-500 decoration-2'
+              charClass = 'text-red-300 bg-red-500/10 rounded-[0.12rem] underline decoration-red-400 decoration-2 underline-offset-2'
             }
 
             return (
@@ -91,32 +89,26 @@ export function TypingArea({
                 key={index}
                 ref={isCurrent ? activeCharRef : null}
                 className={cn(
-                  'relative inline-block min-w-[0.28em] transition-colors duration-75',
+                  'relative inline-block transition-colors duration-100',
                   charClass,
-                  isCurrent && 'typing-current text-slate-800 dark:text-white font-medium'
+                  isCurrent && 'typing-cursor-container',
+                  isSpace && 'min-w-[0.52em]'
                 )}
+                style={isSpace ? { whiteSpace: 'pre' } : undefined}
               >
-                {char === ' ' ? (
-                  isIncorrect ? (
-                    <span aria-label="incorrect space" className="text-red-400 font-sans">·</span>
-                  ) : (
-                    <span aria-label={isCurrent ? 'next character: space' : undefined} className="inline-block w-[0.45em]" />
-                  )
-                ) : (
-                  char
-                )}
+                {char}
               </span>
             )
           })}
         </div>
 
-        {/* Focus status remains deliberately lightweight so the passage stays readable. */}
         {!isFocused && status !== 'completed' && (
-          <div 
+          <div
             onClick={focusInput}
-            className="absolute right-4 top-4 z-20 cursor-pointer rounded-full border border-slate-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-brand-400 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-400"
+            className="absolute bottom-3 right-3 z-10 inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-2.5 py-1.5 text-[11px] font-medium text-slate-200 shadow-sm backdrop-blur-sm"
           >
-            <span className="flex items-center gap-1.5"><MousePointerClick className="h-3.5 w-3.5" /> Click to continue</span>
+            <MousePointerClick className="w-3.5 h-3.5 text-sky-400" />
+            {status === 'idle' ? 'Press any key to start' : 'Press any key to resume'}
           </div>
         )}
       </Card>

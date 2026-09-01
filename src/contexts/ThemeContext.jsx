@@ -7,14 +7,15 @@ export function ThemeProvider({ children }) {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('typeflow_theme')
       if (savedTheme) return savedTheme
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      return 'system'
     }
     return 'dark'
   })
 
   useEffect(() => {
     const root = document.documentElement
-    if (theme === 'dark') {
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    if (isDark) {
       root.classList.add('dark')
     } else {
       root.classList.remove('dark')
@@ -27,7 +28,7 @@ export function ThemeProvider({ children }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDark: theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) }}>
       {children}
     </ThemeContext.Provider>
   )

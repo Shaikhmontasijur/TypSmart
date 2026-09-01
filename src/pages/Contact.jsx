@@ -25,8 +25,8 @@ export function Contact() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <SEOHead
-        title="Contact & Support — TypeFlow"
-        description="Get in touch with the TypeFlow team for support, feature suggestions, or institutional licensing."
+        title="Contact & Support — TypSmart"
+        description="Get in touch with the TypSmart team for support, feature suggestions, or institutional licensing."
       />
 
       <div className="text-center mb-12">
@@ -78,7 +78,7 @@ export function Contact() {
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Message Sent</h3>
               <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
-                Thank you for reaching out! A member of the TypeFlow team will respond to {email} shortly.
+                Thank you for reaching out! A member of the TypSmart team will respond to {email} shortly.
               </p>
               <Button variant="outline" size="sm" onClick={() => setSubmitted(false)}>
                 Send Another Message

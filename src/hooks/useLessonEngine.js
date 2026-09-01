@@ -22,7 +22,7 @@ export function useLessonEngine({
   const startTimeRef = useRef(null)
   const timerIntervalRef = useRef(null)
   const inputRef = useRef(null)
-  const { playKeySound } = useSound()
+  const { playSound } = useSound()
 
   const resetLesson = useCallback(() => {
     setUserInput('')
@@ -103,6 +103,7 @@ export function useLessonEngine({
     if (e.key === 'Backspace') {
       e.preventDefault()
       if (userInput.length > 0) {
+        if (soundEnabled) playSound('backspace')
         const newInput = userInput.slice(0, -1)
         setUserInput(newInput)
 
@@ -137,7 +138,7 @@ export function useLessonEngine({
     const isCharCorrect = typedChar === targetChar
 
     if (soundEnabled) {
-      playKeySound(!isCharCorrect)
+      playSound(!isCharCorrect ? 'error' : typedChar === ' ' ? 'space' : 'correct')
     }
 
     const newInput = userInput + typedChar
@@ -170,7 +171,7 @@ export function useLessonEngine({
     userInput,
     lessonContent,
     soundEnabled,
-    playKeySound,
+    playSound,
     totalTypedChars,
     correctChars,
     incorrectChars,

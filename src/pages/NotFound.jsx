@@ -10,7 +10,7 @@ export function NotFound() {
     <div className="min-h-[70vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-16">
       <SEOHead
         title="404 — Page Not Found"
-        description="The requested page could not be located on TypeFlow."
+        description="The requested page could not be located on TypSmart."
       />
 
       <Card className="p-8 sm:p-12 text-center max-w-lg mx-auto shadow-xl">

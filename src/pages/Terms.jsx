@@ -7,8 +7,8 @@ export function Terms() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <SEOHead
-        title="Terms of Service — TypeFlow"
-        description="Review the terms and conditions for using TypeFlow web services and typing practice tools."
+        title="Terms of Service — TypSmart"
+        description="Review the terms and conditions for using TypSmart web services and typing practice tools."
       />
 
       <div className="mb-8">
@@ -25,7 +25,7 @@ export function Terms() {
         <section>
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">1. Acceptance of Terms</h2>
           <p>
-            By accessing or using TypeFlow, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may discontinue use of the platform.
+            By accessing or using TypSmart, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may discontinue use of the platform.
           </p>
         </section>
 

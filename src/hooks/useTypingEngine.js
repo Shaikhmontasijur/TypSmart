@@ -21,13 +21,12 @@ export function useTypingEngine({
   const [totalTypedChars, setTotalTypedChars] = useState(0)
   const [currentWpm, setCurrentWpm] = useState(0)
   const [currentAccuracy, setCurrentAccuracy] = useState(100)
-  const [lastPressedKey, setLastPressedKey] = useState({ key: '', sequence: 0 })
 
   // Timestamps
   const startTimeRef = useRef(null)
   const timerIntervalRef = useRef(null)
   const inputRef = useRef(null)
-  const { playKeySound } = useSound()
+  const { playSound } = useSound()
 
   // Initialize text based on difficulty
   const initText = useCallback(() => {
@@ -43,7 +42,6 @@ export function useTypingEngine({
     setTotalTypedChars(0)
     setCurrentWpm(0)
     setCurrentAccuracy(100)
-    setLastPressedKey({ key: '', sequence: 0 })
     startTimeRef.current = null
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current)
@@ -69,6 +67,7 @@ export function useTypingEngine({
     }
     setStatus('completed')
     setTimeLeft(0)
+    playSound('finish')
 
     const elapsedSeconds = duration
     const finalWpm = calculateWpm(correctChars, elapsedSeconds)
@@ -87,7 +86,7 @@ export function useTypingEngine({
         completedAt: new Date().toISOString()
       })
     }
-  }, [duration, difficulty, correctChars, incorrectChars, totalTypedChars, onComplete])
+  }, [duration, difficulty, correctChars, incorrectChars, totalTypedChars, onComplete, playSound])
 
   // Timer countdown loop
   useEffect(() => {
@@ -120,8 +119,6 @@ export function useTypingEngine({
   const handleKeyDown = useCallback((e) => {
     if (status === 'completed') return
 
-    setLastPressedKey(previous => ({ key: e.key, sequence: previous.sequence + 1 }))
-
     // Prevent tab navigation out of area while typing
     if (e.key === 'Tab') {
       e.preventDefault()
@@ -132,6 +129,7 @@ export function useTypingEngine({
     if (e.key === 'Backspace') {
       e.preventDefault()
       if (userInput.length > 0) {
+        if (soundEnabled) playSound('backspace')
         const newInput = userInput.slice(0, -1)
         setUserInput(newInput)
         
@@ -174,7 +172,7 @@ export function useTypingEngine({
     const isCharCorrect = typedChar === targetChar
 
     if (soundEnabled) {
-      playKeySound(!isCharCorrect)
+      playSound(!isCharCorrect ? 'error' : typedChar === ' ' ? 'space' : 'correct')
     }
 
     const newInput = userInput + typedChar
@@ -207,7 +205,7 @@ export function useTypingEngine({
     userInput,
     text,
     soundEnabled,
-    playKeySound,
+    playSound,
     totalTypedChars,
     correctChars,
     incorrectChars,
@@ -240,7 +238,6 @@ export function useTypingEngine({
     totalTypedChars,
     currentWpm,
     currentAccuracy,
-    lastPressedKey,
     handleKeyDown,
     handlePaste,
     focusInput,

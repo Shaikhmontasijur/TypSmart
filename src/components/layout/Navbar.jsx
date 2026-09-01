@@ -10,7 +10,8 @@ import {
   Menu, 
   X, 
   Zap,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { ThemeToggle } from '../common/ThemeToggle'
@@ -39,12 +40,12 @@ export function Navbar() {
     cn(
       'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150',
       isActive
-        ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold'
+        ? 'bg-brand-500/10 text-brand-700 dark:text-brand-300 shadow-sm ring-1 ring-brand-500/10 font-semibold'
         : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
     )
-
+  
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -52,16 +53,16 @@ export function Navbar() {
             to="/" 
             className="flex items-center gap-2.5 font-extrabold text-xl tracking-tight group"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-accent-400 flex items-center justify-center text-white shadow-[0_10px_25px_-12px_rgba(2,132,199,0.8)] transition-transform duration-200 group-hover:scale-[1.04]">
               <Zap className="w-5 h-5 fill-current" />
             </div>
-            <span className="bg-gradient-to-r from-slate-900 via-brand-700 to-brand-500 dark:from-white dark:via-brand-200 dark:to-accent-400 bg-clip-text text-transparent">
-              TYPEFLOW
+            <span className="text-slate-900 dark:text-white tracking-[-0.04em]">
+              TypSmart
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-slate-100/70 p-1 dark:border-slate-800 dark:bg-slate-900/70">
             {navLinks.map((link) => (
               <NavLink key={link.path} to={link.path} className={linkClass}>
                 <link.icon className="w-4 h-4" />
@@ -74,17 +75,23 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
 
+            {isAuthenticated && (
+              <Link to="/settings" className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Settings" aria-label="Settings">
+                <Settings className="w-4 h-4" />
+              </Link>
+            )}
+
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <Link
                   to="/profile"
-                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition text-sm font-medium"
+                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200/80 bg-white/80 dark:border-slate-800 dark:bg-slate-900/80 hover:border-slate-300 dark:hover:border-slate-700 transition text-sm font-medium"
                 >
-                  <div className="w-6 h-6 rounded-full bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs">
+                  <div className="w-6 h-6 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-[11px]">
                     {(profile?.display_name || profile?.username || 'U').charAt(0).toUpperCase()}
                   </div>
                   <span className="max-w-[100px] truncate text-slate-700 dark:text-slate-200">
-                    {profile?.display_name || profile?.username || 'Typist'}
+                    {profile?.username || 'User'}
                   </span>
                 </Link>
 
@@ -172,7 +179,10 @@ export function Navbar() {
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <User className="w-4 h-4" />
-                  Profile ({profile?.display_name || profile?.username || 'Typist'})
+                  Profile ({profile?.username || 'User'})
+                </Link>
+                <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <Settings className="w-4 h-4" /> Settings
                 </Link>
                 <button
                   type="button"

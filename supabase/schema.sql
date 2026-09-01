@@ -132,8 +132,8 @@ begin
   insert into public.profiles (id, username, display_name, avatar_url)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'username', 'user_' || substring(new.id::text, 1, 8)),
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
+    coalesce(nullif(new.raw_user_meta_data->>'username', ''), 'User'),
+    coalesce(nullif(new.raw_user_meta_data->>'display_name', ''), new.raw_user_meta_data->>'username', 'User'),
     coalesce(new.raw_user_meta_data->>'avatar_url', '')
   );
   return new;

@@ -30,7 +30,7 @@ export function Dashboard() {
   const [showCertModal, setShowCertModal] = useState(false)
   const [showPricingModal, setShowPricingModal] = useState(false)
 
-  const displayName = profile?.display_name || profile?.username || 'Typist'
+  const displayName = profile?.display_name || profile?.username || 'User'
 
   const hasData = stats.testsCompleted > 0 || stats.lessonsCompleted > 0
 
