@@ -11,18 +11,20 @@ export function TypingArea({
   setIsFocused,
   inputRef,
   handleKeyDown,
+  handleInput,
   handlePaste,
+  handleCompositionStart,
+  handleCompositionEnd,
   focusInput
 }) {
   const containerRef = useRef(null)
   const activeCharRef = useRef(null)
 
-  // Keep active character in view
   useEffect(() => {
     if (activeCharRef.current && containerRef.current) {
       const charEl = activeCharRef.current
       const containerEl = containerRef.current
-      
+
       const charTop = charEl.offsetTop - containerEl.offsetTop
       const containerHeight = containerEl.clientHeight
 
@@ -47,18 +49,25 @@ export function TypingArea({
       >
         <textarea
           ref={inputRef}
-          value=""
+          defaultValue=""
+          onInput={handleInput}
           onChange={() => {}}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoCapitalize="none"
           autoComplete="off"
           autoCorrect="off"
-          spellCheck="false"
-          className="absolute opacity-0 pointer-events-none w-0 h-0 p-0 m-0 -top-9999px"
+          spellCheck={false}
+          inputMode="text"
+          enterKeyHint="done"
           aria-label="Typing test input"
+          tabIndex={0}
+          rows={1}
+          className="absolute left-0 top-0 z-0 h-px w-px resize-none border-0 bg-transparent p-0 opacity-0 outline-none"
         />
 
         {status === 'idle' && (
@@ -68,7 +77,10 @@ export function TypingArea({
           </div>
         )}
 
-        <div ref={containerRef} className="typing-passage break-words text-slate-200">
+        <div
+          ref={containerRef}
+          className="typing-passage break-words text-slate-200"
+        >
           {Array.from(text).map((char, index) => {
             const isTyped = index < userInput.length
             const isCurrent = index === userInput.length
@@ -79,9 +91,11 @@ export function TypingArea({
             let charClass = 'text-slate-400/90'
 
             if (isCorrect) {
-              charClass = 'text-emerald-300 bg-emerald-500/8 rounded-[0.12rem]'
+              charClass =
+                'text-emerald-300 bg-emerald-500/8 rounded-[0.12rem]'
             } else if (isIncorrect) {
-              charClass = 'text-red-300 bg-red-500/10 rounded-[0.12rem] underline decoration-red-400 decoration-2 underline-offset-2'
+              charClass =
+                'text-red-300 bg-red-500/10 rounded-[0.12rem] underline decoration-red-400 decoration-2 underline-offset-2'
             }
 
             return (
@@ -104,11 +118,16 @@ export function TypingArea({
 
         {!isFocused && status !== 'completed' && (
           <div
-            onClick={focusInput}
+            onClick={(e) => {
+              e.stopPropagation()
+              focusInput()
+            }}
             className="absolute bottom-3 right-3 z-10 inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-2.5 py-1.5 text-[11px] font-medium text-slate-200 shadow-sm backdrop-blur-sm"
           >
             <MousePointerClick className="w-3.5 h-3.5 text-sky-400" />
-            {status === 'idle' ? 'Press any key to start' : 'Press any key to resume'}
+            {status === 'idle'
+              ? 'Press any key to start'
+              : 'Press any key to resume'}
           </div>
         )}
       </Card>

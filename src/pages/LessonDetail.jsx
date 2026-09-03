@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { lessonService } from '../services/lessonService'
 import { useLessonEngine } from '../hooks/useLessonEngine'
@@ -10,13 +10,12 @@ import { Button } from '../components/common/Button'
 import { ProgressBar } from '../components/common/ProgressBar'
 import { Modal } from '../components/common/Modal'
 import { VirtualKeyboard } from '../components/typing/VirtualKeyboard'
-import { 
-  ArrowLeft, 
-  RotateCcw, 
-  CheckCircle2, 
-  Trophy, 
-  Volume2, 
-  VolumeX, 
+import {
+  ArrowLeft,
+  RotateCcw,
+  CheckCircle2,
+  Volume2,
+  VolumeX,
   ArrowRight,
   MousePointerClick,
   Sparkles,
@@ -25,12 +24,13 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react'
-import { cn, getPerformanceBadge } from '../lib/utils'
+import { cn } from '../lib/utils'
 import confetti from 'canvas-confetti'
 
 export function LessonDetail() {
   const { lessonSlug } = useParams()
   const navigate = useNavigate()
+
   const [lesson, setLesson] = useState(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [showKeyboard, setShowKeyboard] = useState(false)
@@ -42,25 +42,37 @@ export function LessonDetail() {
   useEffect(() => {
     async function fetchLesson() {
       const data = await lessonService.getLessonBySlug(lessonSlug)
+
       if (data) {
         setLesson(data)
       } else {
         navigate('/practice')
       }
     }
+
     fetchLesson()
   }, [lessonSlug, navigate])
 
   const handleLessonComplete = async (result) => {
     setCompletionResult(result)
     setShowCompletionModal(true)
+
     if (lesson) {
-      await recordLessonCompletion(lesson.id, result.wpm, result.accuracy)
+      await recordLessonCompletion(
+        lesson.id,
+        result.wpm,
+        result.accuracy
+      )
     }
+
     try {
-      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } })
+      confetti({
+        particleCount: 60,
+        spread: 70,
+        origin: { y: 0.6 }
+      })
     } catch {
-      // Ignore
+      // Ignore confetti errors
     }
   }
 
@@ -70,14 +82,11 @@ export function LessonDetail() {
     isFocused,
     setIsFocused,
     inputRef,
-    correctChars,
-    incorrectChars,
-    totalTypedChars,
     currentWpm,
     currentAccuracy,
-    elapsedTime,
     progressPercent,
     handleKeyDown,
+    handleInput,
     handlePaste,
     focusInput,
     resetLesson
@@ -87,15 +96,23 @@ export function LessonDetail() {
     onComplete: handleLessonComplete
   })
 
-  // Auto focus input on mount
+  // Keep the typing input focused when the lesson loads.
   useEffect(() => {
-    focusInput()
+    if (lesson) {
+      const timer = setTimeout(() => {
+        focusInput()
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }
   }, [focusInput, lesson])
 
   if (!lesson) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <p className="text-slate-500">Loading lesson curriculum...</p>
+        <p className="text-slate-500">
+          Loading lesson curriculum...
+        </p>
       </div>
     )
   }
@@ -113,14 +130,18 @@ export function LessonDetail() {
           to="/practice"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Lessons
+          <ArrowLeft className="w-4 h-4" />
+          Back to Lessons
         </Link>
 
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowKeyboard(!showKeyboard)}
+            onClick={() => {
+              setShowKeyboard(!showKeyboard)
+              setTimeout(() => focusInput(), 50)
+            }}
             icon={showKeyboard ? EyeOff : Eye}
           >
             {showKeyboard ? 'Hide Keyboard' : 'Show Keyboard'}
@@ -128,16 +149,27 @@ export function LessonDetail() {
 
           <button
             type="button"
-            onClick={() => setSoundEnabled(!soundEnabled)}
+            onClick={() => {
+              setSoundEnabled(!soundEnabled)
+              setTimeout(() => focusInput(), 50)
+            }}
             className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            aria-label={soundEnabled ? 'Disable sound' : 'Enable sound'}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-brand-500" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+            {soundEnabled ? (
+              <Volume2 className="w-4 h-4 text-brand-500" />
+            ) : (
+              <VolumeX className="w-4 h-4 text-slate-400" />
+            )}
           </button>
 
           <Button
             variant="outline"
             size="sm"
-            onClick={resetLesson}
+            onClick={() => {
+              resetLesson()
+              setTimeout(() => focusInput(), 50)
+            }}
             icon={RotateCcw}
           >
             Reset
@@ -155,21 +187,24 @@ export function LessonDetail() {
                   lesson.difficulty === 'advanced'
                     ? 'danger'
                     : lesson.difficulty === 'intermediate'
-                    ? 'warning'
-                    : 'brand'
+                      ? 'warning'
+                      : 'brand'
                 }
                 size="sm"
                 className="capitalize"
               >
                 {lesson.difficulty}
               </Badge>
+
               <span className="text-xs font-semibold text-slate-400">
                 {lesson.category}
               </span>
             </div>
+
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               {lesson.title}
             </h1>
+
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
               {lesson.description}
             </p>
@@ -180,9 +215,16 @@ export function LessonDetail() {
         <div className="space-y-1.5">
           <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
             <span>Completion Progress</span>
-            <span className="font-mono">{progressPercent}%</span>
+            <span className="font-mono">
+              {progressPercent}%
+            </span>
           </div>
-          <ProgressBar progress={progressPercent} color="brand" height="h-2.5" />
+
+          <ProgressBar
+            progress={progressPercent}
+            color="brand"
+            height="h-2.5"
+          />
         </div>
       </Card>
 
@@ -192,9 +234,15 @@ export function LessonDetail() {
           <div className="p-2 rounded-xl bg-brand-500/10 text-brand-500">
             <Zap className="w-4 h-4" />
           </div>
+
           <div>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase">Live WPM</p>
-            <p className="text-xl font-bold font-mono text-slate-900 dark:text-white">{currentWpm}</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase">
+              Live WPM
+            </p>
+
+            <p className="text-xl font-bold font-mono text-slate-900 dark:text-white">
+              {currentWpm}
+            </p>
           </div>
         </div>
 
@@ -202,9 +250,15 @@ export function LessonDetail() {
           <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
             <Target className="w-4 h-4" />
           </div>
+
           <div>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase">Accuracy</p>
-            <p className="text-xl font-bold font-mono text-slate-900 dark:text-white">{currentAccuracy}%</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase">
+              Accuracy
+            </p>
+
+            <p className="text-xl font-bold font-mono text-slate-900 dark:text-white">
+              {currentAccuracy}%
+            </p>
           </div>
         </div>
 
@@ -212,10 +266,17 @@ export function LessonDetail() {
           <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
             <CheckCircle2 className="w-4 h-4" />
           </div>
+
           <div>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase">Typed</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase">
+              Typed
+            </p>
+
             <p className="text-xl font-bold font-mono text-slate-900 dark:text-white">
-              {userInput.length}<span className="text-xs text-slate-400 font-normal">/{lesson.content.length}</span>
+              {userInput.length}
+              <span className="text-xs text-slate-400 font-normal">
+                /{lesson.content.length}
+              </span>
             </p>
           </div>
         </div>
@@ -231,21 +292,34 @@ export function LessonDetail() {
             : 'border-slate-200 dark:border-slate-800 opacity-80'
         )}
       >
+        {/* Mobile + Desktop Native Input */}
         <textarea
-          ref={inputRef}
-          value=""
-          onChange={() => {}}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          autoCapitalize="none"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck="false"
-          className="absolute opacity-0 pointer-events-none w-0 h-0 p-0 m-0 -top-9999px"
-          aria-label="Lesson input area"
-        />
+  ref={inputRef}
+  value={userInput}
+  onChange={handleInput}
+  onKeyDown={handleKeyDown}
+  onPaste={handlePaste}
+  onFocus={() => setIsFocused(true)}
+  onBlur={() => setIsFocused(false)}
+  onTouchStart={() => {
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 50)
+  }}
+  autoCapitalize="none"
+  autoComplete="off"
+  autoCorrect="off"
+  autoSave="off"
+  inputMode="text"
+  enterKeyHint="done"
+  spellCheck={false}
+  aria-label="Lesson typing input"
+  className="absolute left-2 top-2 w-10 h-10 opacity-[0.01] z-30 border-0 outline-none bg-transparent text-transparent"
+  style={{
+    WebkitAppearance: 'none',
+    touchAction: 'manipulation'
+  }}
+/>
 
         {status === 'idle' && (
           <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-sans font-semibold animate-pulse">
@@ -258,16 +332,21 @@ export function LessonDetail() {
           {Array.from(lesson.content).map((char, index) => {
             const isTyped = index < userInput.length
             const isCurrent = index === userInput.length
-            const isCorrect = isTyped && userInput[index] === char
-            const isIncorrect = isTyped && userInput[index] !== char
+            const isCorrect =
+              isTyped && userInput[index] === char
+            const isIncorrect =
+              isTyped && userInput[index] !== char
             const isSpace = char === ' '
 
-            let charClass = 'text-slate-400 dark:text-slate-500'
+            let charClass =
+              'text-slate-400 dark:text-slate-500'
 
             if (isCorrect) {
-              charClass = 'text-emerald-600 dark:text-emerald-400'
+              charClass =
+                'text-emerald-600 dark:text-emerald-400'
             } else if (isIncorrect) {
-              charClass = 'text-red-500 dark:text-red-400 bg-red-500/10 underline decoration-red-500 decoration-2'
+              charClass =
+                'text-red-500 dark:text-red-400 bg-red-500/10 underline decoration-red-500 decoration-2'
             }
 
             return (
@@ -276,10 +355,15 @@ export function LessonDetail() {
                 className={cn(
                   'relative inline-block transition-colors duration-75',
                   charClass,
-                  isCurrent && 'border-b-2 border-brand-500 text-brand-600 dark:text-brand-300 pb-0.5',
+                  isCurrent &&
+                    'border-b-2 border-brand-500 text-brand-600 dark:text-brand-300 pb-0.5',
                   isSpace && 'min-w-[0.42em]'
                 )}
-                style={isSpace ? { whiteSpace: 'pre' } : undefined}
+                style={
+                  isSpace
+                    ? { whiteSpace: 'pre' }
+                    : undefined
+                }
               >
                 {char}
               </span>
@@ -289,21 +373,35 @@ export function LessonDetail() {
 
         {!isFocused && status !== 'completed' && (
           <div
-            onClick={focusInput}
+            onClick={(e) => {
+              e.stopPropagation()
+              focusInput()
+            }}
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs rounded-2xl flex flex-col items-center justify-center text-white z-20 cursor-pointer animate-fade-in"
           >
             <div className="p-3 rounded-2xl bg-white/10 mb-3 animate-bounce">
               <MousePointerClick className="w-6 h-6 text-brand-400" />
             </div>
-            <p className="text-base font-bold">Click here to focus</p>
+
+            <p className="text-base font-bold">
+              Tap here to focus
+            </p>
+
+            <p className="text-xs text-white/70 mt-1">
+              Start typing to begin
+            </p>
           </div>
         )}
       </Card>
 
-      {/* Virtual Keyboard visualizer */}
+      {/* Virtual Keyboard */}
       {showKeyboard && (
         <div className="mb-6 animate-fade-in">
-          <VirtualKeyboard activeKey={lesson.content[userInput.length] || ''} />
+          <VirtualKeyboard
+            activeKey={
+              lesson.content[userInput.length] || ''
+            }
+          />
         </div>
       )}
 
@@ -321,12 +419,18 @@ export function LessonDetail() {
             </div>
 
             <div>
-              <Badge variant="success" size="md" className="mb-2">
+              <Badge
+                variant="success"
+                size="md"
+                className="mb-2"
+              >
                 Lesson Mastered
               </Badge>
+
               <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
                 Great Work!
               </h2>
+
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 You completed "{lesson.title}". Your progress has been recorded.
               </p>
@@ -334,13 +438,23 @@ export function LessonDetail() {
 
             <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
               <div className="p-2">
-                <p className="text-xs uppercase font-semibold text-slate-400">Velocity</p>
+                <p className="text-xs uppercase font-semibold text-slate-400">
+                  Velocity
+                </p>
+
                 <p className="text-3xl font-black font-mono text-brand-600 dark:text-brand-400 mt-1">
-                  {completionResult.wpm} <span className="text-sm font-normal">WPM</span>
+                  {completionResult.wpm}
+                  <span className="text-sm font-normal">
+                    {' '}WPM
+                  </span>
                 </p>
               </div>
+
               <div className="p-2">
-                <p className="text-xs uppercase font-semibold text-slate-400">Accuracy</p>
+                <p className="text-xs uppercase font-semibold text-slate-400">
+                  Accuracy
+                </p>
+
                 <p className="text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
                   {completionResult.accuracy}%
                 </p>
@@ -353,7 +467,10 @@ export function LessonDetail() {
                 onClick={() => {
                   setShowCompletionModal(false)
                   resetLesson()
-                  setTimeout(() => focusInput(), 50)
+
+                  setTimeout(() => {
+                    focusInput()
+                  }, 100)
                 }}
                 icon={RotateCcw}
                 className="w-full"
@@ -361,7 +478,10 @@ export function LessonDetail() {
                 Practice Again
               </Button>
 
-              <Link to="/practice" className="w-full">
+              <Link
+                to="/practice"
+                className="w-full"
+              >
                 <Button
                   variant="primary"
                   icon={ArrowRight}

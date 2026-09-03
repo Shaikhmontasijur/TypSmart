@@ -3,6 +3,7 @@ import { useSettings } from '../contexts/SettingsContext'
 
 let context
 let masterGain
+let compressor
 let lastErrorAt = 0
 let noiseBufferCache
 
@@ -12,9 +13,20 @@ function getEngine() {
   if (!AudioContextClass) return null
   if (!context) {
     context = new AudioContextClass()
+
+    // Soft limiter — prevents clipping/distortion at higher gains.
+    // Created once, zero per-keystroke cost.
+    compressor = context.createDynamicsCompressor()
+    compressor.threshold.value = -12
+    compressor.knee.value = 6
+    compressor.ratio.value = 4
+    compressor.attack.value = 0.003
+    compressor.release.value = 0.15
+    compressor.connect(context.destination)
+
     masterGain = context.createGain()
-    masterGain.gain.value = 0.9
-    masterGain.connect(context.destination)
+    masterGain.gain.value = 1.0
+    masterGain.connect(compressor)
   }
   if (context.state === 'suspended') context.resume().catch(() => {})
   return context
@@ -35,11 +47,11 @@ function getNoiseBuffer(engine) {
 }
 
 const packs = {
-  mechanical: { type: 'triangle', frequency: 720, length: .028, gain: .09, attack: .003 },
-  soft: { type: 'sine', frequency: 420, length: .045, gain: .065, attack: .004 },
-  typewriter: { type: 'triangle', frequency: 350, length: .024, gain: .08, attack: .0025 },
-  minimal: { type: 'sine', frequency: 660, length: .018, gain: .04, attack: .002 },
-  click: { type: 'triangle', frequency: 1040, length: .016, gain: .07, attack: .002 },
+  mechanical: { type: 'triangle', frequency: 720, length: .028, gain: .18, attack: .003 },
+  soft: { type: 'sine', frequency: 420, length: .045, gain: .13, attack: .004 },
+  typewriter: { type: 'triangle', frequency: 350, length: .024, gain: .16, attack: .0025 },
+  minimal: { type: 'sine', frequency: 660, length: .018, gain: .08, attack: .002 },
+  click: { type: 'triangle', frequency: 1040, length: .016, gain: .14, attack: .002 },
 }
 
 export function useSound() {
@@ -53,7 +65,7 @@ export function useSound() {
 
       const now = engine.currentTime + .001
       const config = packs[settings.soundPack] || packs.mechanical
-      const volumeScale = Math.min(0.9, (settings.volume / 100) * 0.9)
+      const volumeScale = Math.min(1.0, (settings.volume / 100) * 1.0)
 
       if (kind === 'error') {
         if (now - lastErrorAt < 0.04) return
@@ -74,7 +86,7 @@ export function useSound() {
         noiseFilter.frequency.setValueAtTime(2600, now)
         noiseFilter.frequency.exponentialRampToValueAtTime(780, now + 0.36)
         noiseGain.gain.setValueAtTime(0.0001, now)
-        noiseGain.gain.linearRampToValueAtTime(0.07 * volumeScale, now + 0.01)
+        noiseGain.gain.linearRampToValueAtTime(0.14 * volumeScale, now + 0.01)
         noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.36)
 
         tone.type = 'sawtooth'
@@ -84,7 +96,7 @@ export function useSound() {
         toneFilter.frequency.setValueAtTime(1800, now)
         toneFilter.frequency.exponentialRampToValueAtTime(600, now + 0.34)
         toneGain.gain.setValueAtTime(0.0001, now)
-        toneGain.gain.linearRampToValueAtTime(0.085 * volumeScale, now + 0.012)
+        toneGain.gain.linearRampToValueAtTime(0.17 * volumeScale, now + 0.012)
         toneGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34)
 
         noiseSource.connect(noiseFilter)
@@ -118,9 +130,9 @@ export function useSound() {
       const attack = config.attack
       const duration = kind === 'finish' ? 0.09 : config.length
       const baseVolume = kind === 'finish'
-        ? volumeScale * 0.15
+        ? volumeScale * 0.30
         : volumeScale * config.gain
-      const warmVolume = Math.min(0.18, baseVolume + ((Math.random() - 0.5) * 0.015))
+      const warmVolume = Math.min(0.35, baseVolume + ((Math.random() - 0.5) * 0.015))
 
       oscillator.type = config.type
       oscillator.frequency.setValueAtTime(finalFrequency, now)

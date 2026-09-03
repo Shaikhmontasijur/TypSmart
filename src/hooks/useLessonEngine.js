@@ -91,7 +91,106 @@ export function useLessonEngine({
       }
     }
   }, [status, correctChars])
+const handleInput = useCallback((e) => {
+  if (status === 'completed' || !lessonContent) return
 
+  const value = e.target.value
+
+  // New character typed
+  if (value.length > userInput.length) {
+    const typedChars = value.slice(userInput.length)
+
+    for (const char of typedChars) {
+      const targetChar = lessonContent[userInput.length]
+      const isCharCorrect = char === targetChar
+
+      if (status === 'idle') {
+        setStatus('running')
+        startTimeRef.current = Date.now()
+      }
+
+      if (soundEnabled) {
+        playSound(
+          !isCharCorrect
+            ? 'error'
+            : char === ' '
+              ? 'space'
+              : 'correct'
+        )
+      }
+
+      const newInput = userInput + char
+      const newTotal = totalTypedChars + 1
+      const newCorrect = isCharCorrect
+        ? correctChars + 1
+        : correctChars
+      const newIncorrect = isCharCorrect
+        ? incorrectChars
+        : incorrectChars + 1
+
+      setUserInput(newInput)
+      setTotalTypedChars(newTotal)
+      setCorrectChars(newCorrect)
+      setIncorrectChars(newIncorrect)
+
+      setCurrentAccuracy(
+        calculateAccuracy(newCorrect, newTotal)
+      )
+
+      if (startTimeRef.current) {
+        const elapsedSec = Math.max(
+          1,
+          (Date.now() - startTimeRef.current) / 1000
+        )
+
+        setCurrentWpm(
+          calculateWpm(newCorrect, elapsedSec)
+        )
+      }
+
+      if (newInput.length === lessonContent.length) {
+        setTimeout(() => {
+          finishLesson()
+        }, 50)
+        break
+      }
+    }
+  }
+
+  // Backspace
+  else if (value.length < userInput.length) {
+    const newInput = value
+
+    let correct = 0
+    let incorrect = 0
+
+    for (let i = 0; i < newInput.length; i++) {
+      if (newInput[i] === lessonContent[i]) {
+        correct++
+      } else {
+        incorrect++
+      }
+    }
+
+    setUserInput(newInput)
+    setCorrectChars(correct)
+    setIncorrectChars(incorrect)
+
+    setCurrentAccuracy(
+      calculateAccuracy(correct, newInput.length)
+    )
+  }
+}, [
+  status,
+  lessonContent,
+  userInput,
+  soundEnabled,
+  playSound,
+  totalTypedChars,
+  correctChars,
+  incorrectChars,
+  finishLesson
+])
   const handleKeyDown = useCallback((e) => {
     if (status === 'completed' || !lessonContent) return
 

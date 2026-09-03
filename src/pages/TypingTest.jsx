@@ -50,6 +50,7 @@ export function TypingTest() {
     currentWpm,
     currentAccuracy,
     handleKeyDown,
+    handleInput,
     handlePaste,
     focusInput,
     restartTest,
@@ -166,6 +167,7 @@ export function TypingTest() {
           setIsFocused={setIsFocused}
           inputRef={inputRef}
           handleKeyDown={handleKeyDown}
+          handleInput={handleInput}
           handlePaste={handlePaste}
           focusInput={focusInput}
         />
