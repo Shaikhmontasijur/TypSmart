@@ -1,26 +1,39 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { typingService } from '../services/typingService'
 import { SEOHead } from '../components/common/SEOHead'
 import { Card } from '../components/common/Card'
 import { Badge } from '../components/common/Badge'
 import { Tabs } from '../components/common/Tabs'
+import { Button } from '../components/common/Button'
 import { formatDate } from '../lib/utils'
-import { Trophy, Medal, Crown, Flame, Calendar, Award, User, Sparkles } from 'lucide-react'
+import { Trophy, Medal, Crown, ShieldCheck, Bot, Keyboard, CheckCircle2, AlertCircle } from 'lucide-react'
 
 export function Leaderboard() {
+  const [boardType, setBoardType] = useState('verified') // 'verified' | 'benchmarks'
   const [timeframe, setTimeframe] = useState('all')
   const [leaderboardData, setLeaderboardData] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchLeaderboard() {
+    async function loadData() {
       setLoading(true)
-      const data = await typingService.getLeaderboard(timeframe)
-      setLeaderboardData(data)
+      if (boardType === 'verified') {
+        const data = await typingService.getLeaderboard(timeframe)
+        setLeaderboardData(data)
+      } else {
+        const benchmarks = typingService.getBenchmarks()
+        setLeaderboardData(benchmarks)
+      }
       setLoading(false)
     }
-    fetchLeaderboard()
-  }, [timeframe])
+    loadData()
+  }, [boardType, timeframe])
+
+  const categoryTabs = [
+    { id: 'verified', label: 'Verified Community' },
+    { id: 'benchmarks', label: 'Official Benchmarks' },
+  ]
 
   const timeframeTabs = [
     { id: 'daily', label: 'Daily' },
@@ -62,7 +75,7 @@ export function Leaderboard() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <SEOHead
         title="Typing Speed Leaderboard — Global Rankings"
-        description="Check real-time global typing speed rankings across daily, weekly, monthly and all-time benchmarks."
+        description="Check verified global typing speed rankings across daily, weekly, monthly and all-time benchmarks."
       />
 
       {/* Header */}
@@ -72,24 +85,51 @@ export function Leaderboard() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Global Leaderboard
             </h1>
-            <Badge variant="brand" size="sm">
-              Verified
+            <Badge variant={boardType === 'verified' ? 'success' : 'warning'} size="sm">
+              {boardType === 'verified' ? 'Verified Only' : 'Synthetic Baselines'}
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            Live competitive benchmarks. Complete tests to submit your personal highscores to the global board.
+            {boardType === 'verified'
+              ? 'Server-verified community results. Tests must pass mathematical cadence checks to be eligible.'
+              : 'Standardized speed baselines from beginner to grandmaster velocity for baseline comparison.'}
           </p>
         </div>
 
-        {/* Timeframe Selector */}
-        <div>
+        {/* Board Category Switcher */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <Tabs
+            tabs={categoryTabs}
+            activeTab={boardType}
+            onChange={setBoardType}
+          />
+        </div>
+      </div>
+
+      {/* Secondary Filter Row (Timeframe for Verified) */}
+      {boardType === 'verified' && (
+        <div className="mb-6 flex items-center justify-between">
           <Tabs
             tabs={timeframeTabs}
             activeTab={timeframe}
             onChange={setTimeframe}
           />
+          <span className="text-xs text-slate-400 hidden sm:inline-flex items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            Anti-Cheat Protected
+          </span>
         </div>
-      </div>
+      )}
+
+      {/* Notice Banner for Official Benchmarks */}
+      {boardType === 'benchmarks' && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-3">
+          <Bot className="w-5 h-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <span className="font-bold">Official Reference Benchmarks:</span> These entries represent standardized speed tiers for goal setting. They are never ranked against live verified community typists.
+          </div>
+        </div>
+      )}
 
       {/* Top 3 Podium Highlights on larger screens */}
       {!loading && leaderboardData.length >= 3 && (
@@ -100,7 +140,16 @@ export function Leaderboard() {
               2nd
             </div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white">{leaderboardData[1].displayName}</h3>
-            <p className="text-xs text-slate-400 mb-3">@{leaderboardData[1].username}</p>
+            <p className="text-xs text-slate-400 mb-2">@{leaderboardData[1].username}</p>
+            {leaderboardData[1].isVerified ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full mb-2">
+                <CheckCircle2 className="w-3 h-3" /> Verified
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full mb-2">
+                <Bot className="w-3 h-3" /> Benchmark
+              </span>
+            )}
             <div className="font-mono text-3xl font-black text-brand-600 dark:text-brand-400">
               {leaderboardData[1].wpm} <span className="text-xs font-normal">WPM</span>
             </div>
@@ -114,7 +163,16 @@ export function Leaderboard() {
             </div>
             <Badge variant="warning" size="sm" className="mb-1 font-bold">CHAMPION</Badge>
             <h3 className="font-black text-lg text-slate-900 dark:text-white">{leaderboardData[0].displayName}</h3>
-            <p className="text-xs text-slate-400 mb-4">@{leaderboardData[0].username}</p>
+            <p className="text-xs text-slate-400 mb-2">@{leaderboardData[0].username}</p>
+            {leaderboardData[0].isVerified ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full mb-3">
+                <CheckCircle2 className="w-3 h-3" /> Verified
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full mb-3">
+                <Bot className="w-3 h-3" /> Benchmark
+              </span>
+            )}
             <div className="font-mono text-4xl font-black text-amber-500">
               {leaderboardData[0].wpm} <span className="text-sm font-normal">WPM</span>
             </div>
@@ -127,7 +185,16 @@ export function Leaderboard() {
               3rd
             </div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white">{leaderboardData[2].displayName}</h3>
-            <p className="text-xs text-slate-400 mb-3">@{leaderboardData[2].username}</p>
+            <p className="text-xs text-slate-400 mb-2">@{leaderboardData[2].username}</p>
+            {leaderboardData[2].isVerified ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full mb-2">
+                <CheckCircle2 className="w-3 h-3" /> Verified
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full mb-2">
+                <Bot className="w-3 h-3" /> Benchmark
+              </span>
+            )}
             <div className="font-mono text-3xl font-black text-brand-600 dark:text-brand-400">
               {leaderboardData[2].wpm} <span className="text-xs font-normal">WPM</span>
             </div>
@@ -136,10 +203,32 @@ export function Leaderboard() {
         </div>
       )}
 
-      {/* Leaderboard Table / Cards */}
+      {/* Leaderboard Table / Empty State */}
       <Card className="overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-slate-500">Loading leaderboard rankings...</div>
+        ) : leaderboardData.length === 0 ? (
+          <div className="p-12 text-center space-y-4">
+            <div className="w-16 h-16 rounded-3xl bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto">
+              <Trophy className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Verified Records Yet</h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                Be the first typist to complete a verified speed test and claim the top spot on the community leaderboard.
+              </p>
+            </div>
+            <div className="pt-2 flex justify-center gap-3">
+              <Link to="/typing-test">
+                <Button variant="primary" icon={Keyboard} size="sm">
+                  Take a Speed Test
+                </Button>
+              </Link>
+              <Button variant="outline" size="sm" onClick={() => setBoardType('benchmarks')}>
+                View Benchmark Scale
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -147,6 +236,7 @@ export function Leaderboard() {
                 <tr>
                   <th className="py-3.5 px-4 sm:px-6 w-16">Rank</th>
                   <th className="py-3.5 px-4 sm:px-6">Typist</th>
+                  <th className="py-3.5 px-4 sm:px-6">Status</th>
                   <th className="py-3.5 px-4 sm:px-6 text-right">Speed (WPM)</th>
                   <th className="py-3.5 px-4 sm:px-6 text-right">Accuracy</th>
                   <th className="py-3.5 px-4 sm:px-6 text-right hidden sm:table-cell">Duration</th>
@@ -177,6 +267,18 @@ export function Leaderboard() {
                       </div>
                     </td>
 
+                    <td className="py-4 px-4 sm:px-6">
+                      {item.isVerified ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
+                          <Bot className="w-3.5 h-3.5" /> Benchmark
+                        </span>
+                      )}
+                    </td>
+
                     <td className="py-4 px-4 sm:px-6 text-right font-mono font-bold text-base text-brand-600 dark:text-brand-400">
                       {item.wpm}
                     </td>
@@ -202,3 +304,4 @@ export function Leaderboard() {
     </div>
   )
 }
+

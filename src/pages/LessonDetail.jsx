@@ -294,32 +294,35 @@ export function LessonDetail() {
       >
         {/* Mobile + Desktop Native Input */}
         <textarea
-  ref={inputRef}
-  value={userInput}
-  onChange={handleInput}
-  onKeyDown={handleKeyDown}
-  onPaste={handlePaste}
-  onFocus={() => setIsFocused(true)}
-  onBlur={() => setIsFocused(false)}
-  onTouchStart={() => {
-    setTimeout(() => {
-      inputRef.current?.focus()
-    }, 50)
-  }}
-  autoCapitalize="none"
-  autoComplete="off"
-  autoCorrect="off"
-  autoSave="off"
-  inputMode="text"
-  enterKeyHint="done"
-  spellCheck={false}
-  aria-label="Lesson typing input"
-  className="absolute left-2 top-2 w-10 h-10 opacity-[0.01] z-30 border-0 outline-none bg-transparent text-transparent"
-  style={{
-    WebkitAppearance: 'none',
-    touchAction: 'manipulation'
-  }}
-/>
+          ref={inputRef}
+          defaultValue=""
+          onInput={handleInput}
+          onChange={() => {}}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onTouchStart={() => {
+            setTimeout(() => {
+              inputRef.current?.focus()
+            }, 50)
+          }}
+          autoCapitalize="none"
+          autoComplete="off"
+          autoCorrect="off"
+          autoSave="off"
+          inputMode="text"
+          enterKeyHint="done"
+          spellCheck={false}
+          aria-label="Lesson typing input"
+          tabIndex={0}
+          rows={1}
+          className="absolute left-2 top-2 w-10 h-10 opacity-[0.01] z-30 border-0 outline-none bg-transparent text-transparent"
+          style={{
+            WebkitAppearance: 'none',
+            touchAction: 'manipulation'
+          }}
+        />
 
         {status === 'idle' && (
           <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-sans font-semibold animate-pulse">

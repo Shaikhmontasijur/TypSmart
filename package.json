@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.54.3",
-    "@cloudflare/workerd-windows-64": "^1.20260831.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",

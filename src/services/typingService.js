@@ -2,27 +2,63 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 const LOCAL_STORAGE_TESTS_KEY = 'typeflow_local_tests'
 
+// Official static benchmark typists representing baseline speed tiers
+const DEFAULT_BENCHMARKS = [
+  { rank: 1, id: 'b1', username: 'velocity_king', displayName: 'Elena Rostova', wpm: 128, accuracy: 99.4, duration: 60, difficulty: 'hard', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 2).toISOString() },
+  { rank: 2, id: 'b2', username: 'alex_keystroke', displayName: 'Alex Mercer', wpm: 119, accuracy: 98.8, duration: 60, difficulty: 'medium', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 5).toISOString() },
+  { rank: 3, id: 'b3', username: 'sarah_types', displayName: 'Sarah Jenkins', wpm: 114, accuracy: 99.1, duration: 30, difficulty: 'medium', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 12).toISOString() },
+  { rank: 4, id: 'b4', username: 'quantum_coder', displayName: 'David Kim', wpm: 108, accuracy: 97.6, duration: 60, difficulty: 'hard', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 24).toISOString() },
+  { rank: 5, id: 'b5', username: 'tactile_samurai', displayName: 'Kenji Sato', wpm: 102, accuracy: 98.2, duration: 60, difficulty: 'medium', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 36).toISOString() },
+  { rank: 6, id: 'b6', username: 'flow_state_dan', displayName: 'Daniel Rivera', wpm: 97, accuracy: 96.9, duration: 30, difficulty: 'easy', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 48).toISOString() },
+  { rank: 7, id: 'b7', username: 'cadence_pro', displayName: 'Maya Lindqvist', wpm: 94, accuracy: 98.5, duration: 60, difficulty: 'medium', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 72).toISOString() },
+  { rank: 8, id: 'b8', username: 'hyper_typist', displayName: 'Marcus Vance', wpm: 89, accuracy: 95.8, duration: 15, difficulty: 'easy', isBenchmark: true, isVerified: false, date: new Date(Date.now() - 3600000 * 96).toISOString() },
+]
+
 export const typingService = {
   /**
-   * Save a completed typing test
+   * Save a completed typing test with evidence packet
    */
   async saveTest(testData, user = null) {
+    const duration = Number(testData.duration) || 60
+    const wpm = Number(testData.wpm) || 0
+    const accuracy = Number(testData.accuracy) || 0
+    const correct_chars = Number(testData.correctChars) || 0
+    const incorrect_chars = Number(testData.incorrectChars) || 0
+    const total_chars = Number(testData.totalChars) || 0
+    const started_at = testData.startedAt || new Date().toISOString()
+    const completed_at = testData.completedAt || new Date().toISOString()
+
+    const duration_ms = Math.max(1, new Date(completed_at).getTime() - new Date(started_at).getTime())
+    const mean_interval_ms = total_chars > 0 ? Math.round(duration_ms / total_chars) : 0
+
+    // Lightweight non-invasive evidence packet
+    const evidence = testData.evidence || {
+      duration_ms,
+      mean_interval_ms,
+      backspace_count: 0
+    }
+
     const payload = {
       id: crypto.randomUUID ? crypto.randomUUID() : 'test_' + Date.now(),
       user_id: user?.id || 'guest',
-      duration: testData.duration,
-      difficulty: testData.difficulty,
-      wpm: Number(testData.wpm),
-      accuracy: Number(testData.accuracy),
-      correct_chars: testData.correctChars,
-      incorrect_chars: testData.incorrectChars,
-      total_chars: testData.totalChars,
-      started_at: testData.startedAt || new Date().toISOString(),
-      completed_at: new Date().toISOString(),
-      created_at: new Date().toISOString()
+      duration,
+      difficulty: testData.difficulty || 'easy',
+      wpm,
+      accuracy,
+      correct_chars,
+      incorrect_chars,
+      total_chars,
+      started_at,
+      completed_at,
+      created_at: new Date().toISOString(),
+      is_verified: false,
+      is_eligible_for_leaderboard: false,
+      is_benchmark: false,
+      verification_status: 'pending',
+      evidence
     }
 
-    // Always keep a local copy
+    // Always keep a local copy for offline persistence
     try {
       const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_TESTS_KEY) || '[]')
       existing.unshift(payload)
@@ -31,22 +67,35 @@ export const typingService = {
       // Ignore local storage error
     }
 
-    // If authenticated with Supabase, save to DB
+    // If authenticated with Supabase, save to DB through server-side verification trigger
     if (isSupabaseConfigured && supabase && user && user.id !== 'guest') {
       try {
-        const { error } = await supabase.from('typing_tests').insert({
-          user_id: user.id,
-          duration: payload.duration,
-          difficulty: payload.difficulty,
-          wpm: payload.wpm,
-          accuracy: payload.accuracy,
-          correct_chars: payload.correct_chars,
-          incorrect_chars: payload.incorrect_chars,
-          total_chars: payload.total_chars,
-          started_at: payload.started_at,
-          completed_at: payload.completed_at
-        })
-        if (error) console.warn('Supabase save test error:', error)
+        const { data, error } = await supabase
+          .from('typing_tests')
+          .insert({
+            user_id: user.id,
+            duration: payload.duration,
+            difficulty: payload.difficulty,
+            wpm: payload.wpm,
+            accuracy: payload.accuracy,
+            correct_chars: payload.correct_chars,
+            incorrect_chars: payload.incorrect_chars,
+            total_chars: payload.total_chars,
+            started_at: payload.started_at,
+            completed_at: payload.completed_at,
+            evidence: payload.evidence
+          })
+          .select('id, wpm, accuracy, is_verified, is_eligible_for_leaderboard, verification_status, verification_reason')
+          .maybeSingle()
+
+        if (error) {
+          console.warn('Supabase save test error:', error)
+        } else if (data) {
+          payload.is_verified = Boolean(data.is_verified)
+          payload.is_eligible_for_leaderboard = Boolean(data.is_eligible_for_leaderboard)
+          payload.verification_status = data.verification_status
+          payload.verification_reason = data.verification_reason
+        }
       } catch (err) {
         console.warn('Failed to save to Supabase:', err)
       }
@@ -115,7 +164,8 @@ export const typingService = {
   },
 
   /**
-   * Get Leaderboard for specified timeframe: 'daily' | 'weekly' | 'monthly' | 'all'
+   * Get Verified Human Leaderboard for specified timeframe: 'daily' | 'weekly' | 'monthly' | 'all'
+   * Strictly filters for verified, non-benchmark community results.
    */
   async getLeaderboard(timeframe = 'all') {
     if (isSupabaseConfigured && supabase) {
@@ -129,12 +179,18 @@ export const typingService = {
             duration,
             difficulty,
             completed_at,
+            is_verified,
+            is_eligible_for_leaderboard,
+            is_benchmark,
+            verification_status,
             profiles (
               username,
               display_name,
               avatar_url
             )
           `)
+          .eq('is_eligible_for_leaderboard', true)
+          .eq('is_benchmark', false)
           .order('wpm', { ascending: false })
           .limit(50)
 
@@ -152,8 +208,7 @@ export const typingService = {
         }
 
         const { data, error } = await query
-        if (!error && data && data.length > 0) {
-          // Format leaderboard entries
+        if (!error && data) {
           return data.map((item, idx) => ({
             rank: idx + 1,
             id: item.id,
@@ -164,7 +219,9 @@ export const typingService = {
             accuracy: Math.round(Number(item.accuracy)),
             duration: item.duration,
             difficulty: item.difficulty,
-            date: item.completed_at
+            date: item.completed_at,
+            isVerified: true,
+            isBenchmark: false
           }))
         }
       } catch (err) {
@@ -172,41 +229,13 @@ export const typingService = {
       }
     }
 
-    // Default authentic community benchmarks when DB is empty or offline
-    const defaultBenchmarkScores = [
-      { rank: 1, id: 'b1', username: 'velocity_king', displayName: 'Elena Rostova', wpm: 128, accuracy: 99.4, duration: 60, difficulty: 'hard', date: new Date(Date.now() - 3600000 * 2).toISOString() },
-      { rank: 2, id: 'b2', username: 'alex_keystroke', displayName: 'Alex Mercer', wpm: 119, accuracy: 98.8, duration: 60, difficulty: 'medium', date: new Date(Date.now() - 3600000 * 5).toISOString() },
-      { rank: 3, id: 'b3', username: 'sarah_types', displayName: 'Sarah Jenkins', wpm: 114, accuracy: 99.1, duration: 30, difficulty: 'medium', date: new Date(Date.now() - 3600000 * 12).toISOString() },
-      { rank: 4, id: 'b4', username: 'quantum_coder', displayName: 'David Kim', wpm: 108, accuracy: 97.6, duration: 60, difficulty: 'hard', date: new Date(Date.now() - 3600000 * 24).toISOString() },
-      { rank: 5, id: 'b5', username: 'tactile_samurai', displayName: 'Kenji Sato', wpm: 102, accuracy: 98.2, duration: 60, difficulty: 'medium', date: new Date(Date.now() - 3600000 * 36).toISOString() },
-      { rank: 6, id: 'b6', username: 'flow_state_dan', displayName: 'Daniel Rivera', wpm: 97, accuracy: 96.9, duration: 30, difficulty: 'easy', date: new Date(Date.now() - 3600000 * 48).toISOString() },
-      { rank: 7, id: 'b7', username: 'cadence_pro', displayName: 'Maya Lindqvist', wpm: 94, accuracy: 98.5, duration: 60, difficulty: 'medium', date: new Date(Date.now() - 3600000 * 72).toISOString() },
-      { rank: 8, id: 'b8', username: 'hyper_typist', displayName: 'Marcus Vance', wpm: 89, accuracy: 95.8, duration: 15, difficulty: 'easy', date: new Date(Date.now() - 3600000 * 96).toISOString() },
-    ]
+    return []
+  },
 
-    // Integrate local user's personal best if higher
-    try {
-      const local = JSON.parse(localStorage.getItem(LOCAL_STORAGE_TESTS_KEY) || '[]')
-      if (local.length > 0) {
-        const bestLocal = [...local].sort((a, b) => Number(b.wpm) - Number(a.wpm))[0]
-        const userEntry = {
-          rank: 0,
-          id: 'user_pb',
-          username: 'you',
-          displayName: 'You (Current Device)',
-          wpm: Math.round(Number(bestLocal.wpm)),
-          accuracy: Math.round(Number(bestLocal.accuracy)),
-          duration: bestLocal.duration,
-          difficulty: bestLocal.difficulty,
-          date: bestLocal.completed_at
-        }
-        const combined = [...defaultBenchmarkScores, userEntry].sort((a, b) => b.wpm - a.wpm)
-        return combined.map((entry, index) => ({ ...entry, rank: index + 1 }))
-      }
-    } catch {
-      // Ignore
-    }
-
-    return defaultBenchmarkScores
+  /**
+   * Get Official Synthetic/AI Benchmarks (Never mixed with human leaderboard)
+   */
+  getBenchmarks() {
+    return DEFAULT_BENCHMARKS
   }
 }
