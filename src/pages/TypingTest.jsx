@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useTypingEngine } from '../hooks/useTypingEngine'
 import { useTypingStats } from '../contexts/TypingStatsContext'
 import { useAuth } from '../contexts/AuthContext'
@@ -14,7 +14,7 @@ import { Card } from '../components/common/Card'
 import { Button } from '../components/common/Button'
 import { useSettings } from '../contexts/SettingsContext'
 import { Keyboard, HelpCircle, ShieldCheck, Sparkles, Award, FileText, Eye, EyeOff } from 'lucide-react'
-
+import { typingService } from '../services/typingService'
 export function TypingTest() {
   const { settings, updateSettings } = useSettings()
   const [duration, setDuration] = useState(settings.duration)
@@ -26,15 +26,59 @@ export function TypingTest() {
   const [showCustomTextModal, setShowCustomTextModal] = useState(false)
   const [customTextInput, setCustomTextInput] = useState('')
   const [completedResults, setCompletedResults] = useState(null)
-
-  const { recordTest } = useTypingStats()
+  const [typingSession, setTypingSession] = useState(null)
+  const typingSessionRef = useRef(null)
+  const { recordTest, refreshStats } = useTypingStats()
   const { profile, user } = useAuth()
+  const handleTypingStart = async (startInfo) => {
 
-  const handleTestComplete = async (results) => {
-    setCompletedResults(results)
-    setShowResultsModal(true)
-    await recordTest(results)
+
+  const session = await typingService.startTypingTestSession(
+    startInfo.difficulty
+  )
+
+  if (session?.id) {
+    typingSessionRef.current = session
+    setTypingSession(session)
+
   }
+}
+ const handleTestComplete = async (results) => {
+  setCompletedResults(results)
+  setShowResultsModal(true)
+
+  let secureSubmitted = false
+
+  if (typingSessionRef.current?.id && user?.id) {
+    const secureResult = await typingService.submitTypingTest({
+      sessionId: typingSessionRef.current.id,
+      correctChars: results.correctChars,
+      incorrectChars: results.incorrectChars,
+      totalChars: results.totalTypedChars,
+      difficulty
+    })
+
+    if (secureResult) {
+      secureSubmitted = true
+
+    } else {
+      console.warn('Secure typing test submission failed')
+    }
+  } else {
+    console.log('Guest/local test — using local save')
+  }
+
+  // Authenticated secure tests are already saved by the server RPC.
+  // Do not save them again with recordTest().
+  if (!secureSubmitted) {
+    await recordTest(results)
+  } else {
+    await refreshStats()
+  }
+
+  typingSessionRef.current = null
+  setTypingSession(null)
+}
 
   const {
     text,
@@ -55,12 +99,13 @@ export function TypingTest() {
     focusInput,
     restartTest,
     newTest
-  } = useTypingEngine({
-    duration,
-    difficulty,
-    soundEnabled,
-    onComplete: handleTestComplete
-  })
+ } = useTypingEngine({
+  duration,
+  difficulty,
+  soundEnabled,
+  onStart: handleTypingStart,
+  onComplete: handleTestComplete
+})
 
   // Auto-focus on mount
   useEffect(() => {

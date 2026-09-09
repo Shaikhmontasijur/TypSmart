@@ -4,4 +4,4 @@ Disallow: /dashboard
 Disallow: /profile
 Disallow: /history
 
-Sitemap: https://typeflow.pages.dev/sitemap.xml
+Sitemap: https://typsmart.montasijur444.workers.dev/sitemap.xml

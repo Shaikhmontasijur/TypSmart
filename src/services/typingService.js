@@ -67,43 +67,76 @@ export const typingService = {
       // Ignore local storage error
     }
 
-    // If authenticated with Supabase, save to DB through server-side verification trigger
-    if (isSupabaseConfigured && supabase && user && user.id !== 'guest') {
-      try {
-        const { data, error } = await supabase
-          .from('typing_tests')
-          .insert({
-            user_id: user.id,
-            duration: payload.duration,
-            difficulty: payload.difficulty,
-            wpm: payload.wpm,
-            accuracy: payload.accuracy,
-            correct_chars: payload.correct_chars,
-            incorrect_chars: payload.incorrect_chars,
-            total_chars: payload.total_chars,
-            started_at: payload.started_at,
-            completed_at: payload.completed_at,
-            evidence: payload.evidence
-          })
-          .select('id, wpm, accuracy, is_verified, is_eligible_for_leaderboard, verification_status, verification_reason')
-          .maybeSingle()
+   // Always keep a local copy for offline persistence
+    try {
+      const existing = JSON.parse(
+        localStorage.getItem(LOCAL_STORAGE_TESTS_KEY) || '[]'
+      )
 
-        if (error) {
-          console.warn('Supabase save test error:', error)
-        } else if (data) {
-          payload.is_verified = Boolean(data.is_verified)
-          payload.is_eligible_for_leaderboard = Boolean(data.is_eligible_for_leaderboard)
-          payload.verification_status = data.verification_status
-          payload.verification_reason = data.verification_reason
-        }
-      } catch (err) {
-        console.warn('Failed to save to Supabase:', err)
-      }
+      existing.unshift(payload)
+
+      localStorage.setItem(
+        LOCAL_STORAGE_TESTS_KEY,
+        JSON.stringify(existing.slice(0, 100))
+      )
+    } catch {
+      // Ignore local storage error
     }
+
+    // Authenticated database submissions are handled exclusively
+    // by submitTypingTest() through the server-authoritative RPC.
+    // saveTest() only keeps the local offline/guest copy.
 
     return payload
   },
+/**
+   * Start a server-authoritative typing test session
+   */
+ async startTypingTestSession(difficulty = 'easy') {
+  if (!isSupabaseConfigured || !supabase) {
+    console.error('START SESSION FAILED: Supabase is not configured')
+    return null
+  }
 
+  try {
+    const { data, error } = await supabase.rpc(
+      'start_typing_test_session',
+      {
+        p_difficulty: difficulty
+      }
+    )
+
+    console.log('START SESSION RPC DATA:', data)
+    console.log('START SESSION RPC ERROR:', error)
+
+    if (error) {
+      console.error('START TYPING SESSION RPC FAILED:', error)
+      return null
+    }
+
+    if (!data) {
+      console.error('START TYPING SESSION FAILED: RPC returned no data')
+      return null
+    }
+
+    const session = Array.isArray(data) ? data[0] : data
+
+    if (!session?.id) {
+      console.error(
+        'START TYPING SESSION FAILED: Invalid session response',
+        data
+      )
+      return null
+    }
+
+    console.log('START TYPING SESSION SUCCESS:', session)
+
+    return session
+  } catch (err) {
+    console.error('START TYPING SESSION EXCEPTION:', err)
+    return null
+  }
+},
   /**
    * Get user test history
    */
@@ -132,7 +165,43 @@ export const typingService = {
       return []
     }
   },
+/**
+   * Submit a completed typing test through the secure Supabase RPC
+   */
+  async submitTypingTest({
+    sessionId,
+    correctChars,
+    incorrectChars,
+    totalChars,
+    difficulty = 'easy'
+  }) {
+    if (!isSupabaseConfigured || !supabase || !sessionId) {
+      return null
+    }
 
+    try {
+      const { data, error } = await supabase.rpc(
+        'submit_typing_test',
+        {
+          p_session_id: sessionId,
+          p_correct_chars: Number(correctChars) || 0,
+          p_incorrect_chars: Number(incorrectChars) || 0,
+          p_total_chars: Number(totalChars) || 0,
+          p_difficulty: difficulty
+        }
+      )
+
+      if (error) {
+        console.warn('Submit typing test error:', error)
+        return null
+      }
+
+      return data
+    } catch (err) {
+      console.warn('Failed to submit typing test:', err)
+      return null
+    }
+  },
   /**
    * Get aggregate user stats
    */

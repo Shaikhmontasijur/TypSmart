@@ -7,6 +7,7 @@ export function useTypingEngine({
   duration = 60,
   difficulty = 'easy',
   soundEnabled = true,
+  onStart = null,
   onComplete = null
 }) {
   const [text, setText] = useState('')
@@ -221,10 +222,20 @@ export function useTypingEngine({
         }
 
         if (statusRef.current === 'idle') {
-          startTimeRef.current = Date.now()
-          statusRef.current = 'running'
-          setStatus('running')
-        }
+  startTimeRef.current = Date.now()
+  statusRef.current = 'running'
+  setStatus('running')
+
+  if (onStart) {
+    onStart({
+      startedAt: new Date(
+        startTimeRef.current
+      ).toISOString(),
+      difficulty,
+      duration
+    })
+  }
+}
 
         const targetChar =
           currentText[workingInput.length] || ''
@@ -440,12 +451,12 @@ export function useTypingEngine({
       }
     },
     [
-      difficulty,
-      playSound,
-      processAddedCharacters,
-      recalculateMetrics,
-      soundEnabled
-    ]
+  difficulty,
+  duration,
+  onStart,
+  playSound,
+  soundEnabled
+]
   )
 
   /*

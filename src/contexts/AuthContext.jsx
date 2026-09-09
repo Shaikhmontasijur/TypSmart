@@ -112,7 +112,7 @@ export function AuthProvider({ children }) {
         username: normalizedUsername || 'user',
         display_name: cleanDisplayName || normalizedUsername || 'User',
         avatar_url: '',
-        bio: 'Dedicated TypeFlow typist.',
+        bio: 'Dedicated TypSmart typist.',
         created_at: new Date().toISOString()
       }
       localStorage.setItem('typeflow_guest_user', JSON.stringify({ user: mockUser, profile: mockProfile }))

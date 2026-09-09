@@ -48,7 +48,7 @@ export function Contact() {
             <Mail className="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-sm text-slate-900 dark:text-white">Email Support</p>
-              <p className="text-xs text-slate-500 mt-0.5">support@typeflow.dev</p>
+              <p className="text-xs text-slate-500 mt-0.5">support@typsmart.dev</p>
             </div>
           </Card>
 
@@ -64,7 +64,7 @@ export function Contact() {
             <Globe className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-sm text-slate-900 dark:text-white">Global Edge</p>
-              <p className="text-xs text-slate-500 mt-0.5">Cloudflare Pages Delivery</p>
+              <p className="text-xs text-slate-500 mt-0.5">Cloudflare Workers Delivery</p>
             </div>
           </Card>
         </div>
